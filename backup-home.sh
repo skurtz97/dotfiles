@@ -5,8 +5,10 @@
 #                  excluding game installs and regenerable caches.
 #
 # Usage:
-#   ./backup-home.sh            # real run
-#   ./backup-home.sh --dry-run  # show what WOULD change; transfer nothing
+#   ./backup-home.sh                 # real run; log to file only
+#   ./backup-home.sh --dry-run       # show what WOULD change; transfer nothing
+#   ./backup-home.sh --verbose       # also stream the full log to the terminal
+#   ./backup-home.sh -n -v           # flags combine
 #
 set -euo pipefail
 
@@ -30,6 +32,54 @@ STAMP="$(date +%Y-%m-%d_%H%M%S)"
 LOG_FILE="${LOG_DIR}/backup_${STAMP}.log"
 LOCK_FILE="${LOG_DIR}/.lock"
 mkdir -p "${LOG_DIR}"
+
+# --- Args -------------------------------------------------------------------
+usage() {
+  local ver
+  if [[ -n "${VERSIONING}" ]]; then
+    ver="on — changed/deleted files moved to ${DEST_PATH}-archive/<timestamp>/"
+  else
+    ver="off — pure mirror (remote-side deletions are permanent)"
+  fi
+  cat <<EOF
+${0##*/} — back up ${SRC} to Google Drive via rclone.
+
+Mirrors your home directory to the configured remote, staying on the home
+filesystem (other mounts are skipped) and excluding game installs and caches.
+
+Usage: ${0##*/} [OPTIONS]
+
+Options:
+  -n, --dry-run    Show what would change; transfer nothing.
+  -v, --verbose    Stream the full log to the terminal (also saved to the log file).
+  -h, --help       Show this help and exit.
+
+Examples:
+  ${0##*/} --dry-run --verbose   Preview every change, live, before committing.
+  ${0##*/}                       Normal run (log written to the log dir only).
+
+Current config (edit the block near the top of the script):
+  Source     : ${SRC}
+  Destination: ${DEST}
+  Versioning : ${ver}
+  Log dir    : ${LOG_DIR}
+EOF
+}
+
+VERBOSE=0
+DRYRUN=0
+for arg in "$@"; do
+  case "${arg}" in
+    -v|--verbose) VERBOSE=1 ;;
+    -n|--dry-run) DRYRUN=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *)
+      echo "Unknown option: ${arg}" >&2
+      echo "Try '${0##*/} --help'." >&2
+      exit 2
+      ;;
+  esac
+done
 
 # --- Exclusions -------------------------------------------------------------
 # Paths are relative to ${SRC}. A leading "/" anchors to the home root, so
@@ -82,7 +132,6 @@ RCLONE_ARGS=(
   --transfers 4
   --checkers 8
   --drive-chunk-size 128M     # better throughput on large files
-  --log-file "${LOG_FILE}"
   --log-level INFO
   --stats 30s
   --stats-one-line
@@ -99,7 +148,7 @@ done
 
 [[ -n "${BWLIMIT}" ]] && RCLONE_ARGS+=( --bwlimit "${BWLIMIT}" )
 
-if [[ "${1:-}" == "--dry-run" || "${1:-}" == "-n" ]]; then
+if [[ "${DRYRUN}" -eq 1 ]]; then
   RCLONE_ARGS+=( --dry-run )
   echo ">>> DRY RUN — no files will be transferred."
 fi
@@ -117,10 +166,20 @@ flock -n 9 || { echo "Another backup is already running." >&2; exit 1; }
 echo "Backup starting: ${SRC} -> ${DEST}"
 echo "Log: ${LOG_FILE}"
 
-if rclone "${RCLONE_ARGS[@]}"; then
+rc=0
+if [[ "${VERBOSE}" -eq 1 ]]; then
+  # Stream the full log to the terminal AND save it to the log file.
+  # ${PIPESTATUS[0]} is rclone's exit code (not tee's); '|| rc=' keeps set -e
+  # from aborting before we capture it.
+  rclone "${RCLONE_ARGS[@]}" 2>&1 | tee "${LOG_FILE}" || rc="${PIPESTATUS[0]}"
+else
+  # Default: log to the file only; terminal shows status + periodic stats.
+  rclone "${RCLONE_ARGS[@]}" --log-file "${LOG_FILE}" || rc=$?
+fi
+
+if [[ "${rc}" -eq 0 ]]; then
   echo "Backup completed OK."
 else
-  rc=$?
   echo "Backup FAILED (rclone exit ${rc}). See ${LOG_FILE}" >&2
   exit "${rc}"
 fi
