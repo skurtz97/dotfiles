@@ -82,14 +82,16 @@ for arg in "$@"; do
 done
 
 # --- Exclusions -------------------------------------------------------------
-# Paths are relative to ${SRC}. A leading "/" anchors to the home root, so
-# "/.cache/**" matches ~/.cache only (not some nested .cache). "**" spans
-# path separators; "*" matches a single segment.
+# Goal: back up secrets, configuration, and documents — NOT regenerable
+# package caches, dependency trees, build artifacts, or installed environments.
 #
-# This is a SUPERSET of common launcher locations — trim it to the ones you
-# actually use. (I don't know your exact setup; see the questions in chat.)
+# Pattern syntax (rclone filters):
+#   - A leading "/" anchors to the home root: "/.npm/**" = ~/.npm only.
+#   - A leading "**/" floats: "**/node_modules/**" matches at ANY depth.
+#   - "**" spans path separators; "*" matches a single path segment.
+#   - "dir/**" excludes a directory's contents and lets rclone skip walking it.
 EXCLUDES=(
-  # --- Steam (native) ---
+  # ===== Game installs (launchers) =====
   "/.local/share/Steam/steamapps/common/**"        # installed game files
   "/.local/share/Steam/steamapps/shadercache/**"
   "/.local/share/Steam/steamapps/downloading/**"
@@ -99,24 +101,70 @@ EXCLUDES=(
   "/.local/share/Steam/ubuntu12_64/**"
   "/.steam/**"                                     # symlinks into the above
   # NOTE: ~/.local/share/Steam/steamapps/compatdata holds Proton prefixes,
-  # which often contain SAVE GAMES. It is intentionally NOT excluded here.
-  # Uncomment the next line only if you back saves up some other way:
+  # which often contain SAVE GAMES. Intentionally NOT excluded. Uncomment to drop:
   # "/.local/share/Steam/steamapps/compatdata/**"
+  "/Games/Heroic/**"                               # Heroic (Epic/GOG/Amazon)
+  "/.local/share/lutris/runners/**"                # Lutris wine/proton builds
+  "/.local/share/bottles/**"                       # Bottles wine prefixes
+  "/.paradoxlauncher/**"                           # Paradox launcher runtime
+  "/.wine/**"                                       # default wine prefix
 
-  # --- Heroic (Epic / GOG / Amazon) ---
-  "/Games/Heroic/**"                               # default Heroic install dir
+  # ===== Language package managers: caches, deps, installed envs =====
+  # Rust / Cargo
+  "/.cargo/registry/**"                            # downloaded crates + sources
+  "/.cargo/git/**"
+  "/.cargo/bin/**"                                 # `cargo install` binaries
+  # Node ecosystem
+  "/.npm/**"                                       # npm cache, _npx, logs
+  "/.bun/install/**"                               # bun pkg cache + global installs
+  # Go
+  "/.go/pkg/**"                                    # module + build cache
+  "/.go/bin/**"
+  # .NET / NuGet
+  "/.nuget/packages/**"                            # restored packages
+  "/.dotnet/sdk-advertising/**"
+  # Python: conda / mamba / micromamba (full envs are large & rebuildable)
+  "/.micromamba/envs/**"
+  "/.micromamba/pkgs/**"
+  "/.mamba/**"
+  "/.conda/pkgs/**"
+  # Python: pip --user installs and app libs (regenerable)
+  "/.local/lib/**"
 
-  # --- Lutris ---
-  # Lutris game-install dir is user-defined (often ~/Games). Add yours:
-  # "/Games/**"
-  "/.local/share/lutris/runners/**"                # downloaded wine/proton builds
-  "/.cache/lutris/**"
+  # ===== Generic dependency / build dirs at ANY depth =====
+  "**/node_modules/**"
+  "**/__pycache__/**"
+  "**/.venv/**"
+  "**/venv/**"                                     # (also catches e.g. ~/.hf-cli/venv)
+  "*.pyc"
 
-  # --- Bottles ---
-  "/.local/share/bottles/**"
+  # ===== App data stores (rebuildable, large) =====
+  "/.local/share/flatpak/**"                       # Flatpak runtimes & apps
+  "/.local/share/containers/**"                    # podman/buildah images
+  "/.local/share/pnpm/**"
+  "/.local/share/uv/**"
 
-  # --- Generic regenerable / large ---
+  # ===== Chromium / Electron caches (VS Code, Chrome, Discord, …) =====
+  # Strips caches but KEEPS each app's settings/profile (incl. saved logins).
+  "**/Cache/**"
+  "**/Code Cache/**"
+  "**/GPUCache/**"
+  "**/CachedData/**"
+  "**/CachedExtensionVSIXs/**"
+  "**/DawnGraphiteCache/**"
+  "**/DawnWebGPUCache/**"
+  "**/ShaderCache/**"
+  "**/Crashpad/**"
+  "**/blob_storage/**"
+  "**/Service Worker/CacheStorage/**"
+
+  # ===== Misc temp / scratch / caches =====
   "/.cache/**"
+  "/.ansible/tmp/**"
+  "/.ansible/cp/**"
+  "/.parallel/tmp/**"
+  "/.claude/cache/**"
+  "/.open-webui/cache/**"
   "/.local/share/Trash/**"
   "/.var/app/*/cache/**"                           # Flatpak per-app caches
 )
@@ -126,7 +174,6 @@ RCLONE_ARGS=(
   sync
   "${SRC}" "${DEST}"
   --one-file-system           # stay on the home btrfs fs; skip other mounts
-  --create-empty-src-dirs
   --fast-list                 # fewer API calls to Drive (uses more RAM)
   --track-renames             # detect moved files instead of re-uploading
   --transfers 4
