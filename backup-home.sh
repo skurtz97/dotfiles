@@ -75,6 +75,7 @@ EXCLUDES=(
 RCLONE_ARGS=(
   sync
   "${SRC}" "${DEST}"
+  --one-file-system           # stay on the home btrfs fs; skip other mounts
   --create-empty-src-dirs
   --fast-list                 # fewer API calls to Drive (uses more RAM)
   --track-renames             # detect moved files instead of re-uploading
