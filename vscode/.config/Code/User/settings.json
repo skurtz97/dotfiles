@@ -1,0 +1,227 @@
+{
+  /* ============================================================
+   * Telemetry & AI — everything off
+   * chat.disableAIFeatures is the master switch: it disables and
+   * hides chat/inline suggestions and disables Copilot extensions.
+   * The individual chat.* toggles below are redundant with it but
+   * kept as belt-and-suspenders in case the master switch ever
+   * changes semantics in an update.
+   * ============================================================ */
+  "telemetry.telemetryLevel": "off",
+  "telemetry.feedback.enabled": false,
+  "telemetry.editStats.enabled": false,
+  "telemetry.editStats.details.enabled": false,
+  "telemetry.editStats.showDecorations": false,
+  "telemetry.editStats.showStatusBar": false,
+  "redhat.telemetry.enabled": false, // covers XML, YAML, Java (all Red Hat)
+  "workbench.settings.enableNaturalLanguageSearch": false, // settings-search queries otherwise go to an online MS service
+  "workbench.enableExperiments": false, // no A/B experiment fetching
+  "chat.disableAIFeatures": true, // master switch
+  "chat.agent.enabled": false,
+  "chat.agent.thinking.generateTitles": false,
+  "chat.agent.codeBlockProgress": false,
+  "chat.checkpoints.enabled": false,
+  "chat.detectParticipant.enabled": false,
+  "chat.tools.terminal.outputLocation": "chat",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "none",
+  "window.controlsStyle": "custom",
+
+  /* ============================================================
+   * Performance: File Watcher & Search Limits
+   * ============================================================ */
+  "files.watcherExclude": {
+    // Source Control
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+
+    // Node.js & Svelte
+    "**/node_modules/**": true,
+    "**/.svelte-kit/**": true,
+
+    // Python & Micromamba
+    "**/__pycache__/**": true,
+    "**/.micromamba/envs/**": true,
+    "**/.pytest_cache/**": true,
+
+    // C/C++ Build Artifacts & Clangd
+    "**/.clangd/**": true,
+    "**/build/**": true,
+    "**/out/**": true,
+
+    // AI Servers & Media (Prevents I/O locks on massive folders)
+    "**/models/**": true,
+    "**/media/**": true,
+    "**/logs/**": true, // Prevents watcher from triggering on server log writes
+    "**/temp/**": true,
+    "**/output/**": true, // ComfyUI image generations
+  },
+  "search.exclude": {
+    // Base Development
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/.svelte-kit": true,
+
+    // Python
+    "**/__pycache__": true,
+    "**/.micromamba": true,
+
+    // C/C++
+    "**/.clangd": true,
+    "**/build": true,
+    "**/out": true,
+
+    // AI Weights & Media (Forces text-search to ignore binary models)
+    "**/*.safetensors": true, // ComfyUI / Stable Diffusion
+    "**/*.ckpt": true,
+    "**/*.gguf": true, // Llama.cpp weights (Crucial to exclude due to size)
+    "**/*.bin": true,
+    "**/*.pt": true,
+    "**/*.pth": true,
+
+    // Server Directories
+    "**/media": true, // Jellyfin media
+    "**/models": true,
+
+    // General Binaries/Locks
+    "**/*.lock": true,
+    "**/*.pdf": true,
+  },
+
+  /* ============================================================
+   * Editor
+   * ============================================================ */
+  "editor.fontFamily": "CodeNewRoman Nerd Font Mono",
+  "editor.fontSize": 15,
+  "editor.fontWeight": "bold",
+  "editor.fontLigatures": true,
+  "editor.fontVariations": true,
+  "editor.cursorStyle": "line",
+  // NOTE: false DISABLES the large-file safety mode, forcing full
+  // tokenization and extension features on huge files. This trades
+  // responsiveness (possible renderer hangs on big logs/JSON) for
+  // full editing features. Delete this line to restore the default.
+  "editor.largeFileOptimizations": true,
+
+  /* ============================================================
+   * Terminal
+   * ============================================================ */
+  "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.fontWeight": "bold",
+  "terminal.integrated.gpuAcceleration": "auto",
+
+  /* ============================================================
+   * Explorer
+   * ============================================================ */
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+
+  /* ============================================================
+   * Git
+   * Built-in blame replaces the Git Blame extension.
+   * ============================================================ */
+  "git.confirmSync": false,
+  "git.blame.editorDecoration.enabled": true,
+  "git.blame.statusBarItem.enabled": true,
+
+  /* ============================================================
+   * Markdown
+   * Editing/formatting: Markdown All in One (yzhang).
+   * Preview + PDF/LaTeX export: Markdown Preview Enhanced.
+   * ============================================================ */
+  "[markdown]": {
+    "editor.rulers": [120],
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+  },
+  // Markdown All in One
+  "markdown.extension.toc.orderedList": true,
+  "markdown.extension.theming.decoration.renderLink": true,
+  "markdown.extension.theming.decoration.renderParagraph": true,
+  "markdown.extension.theming.decoration.renderTrailingSpace": true,
+  // Markdown Preview Enhanced
+  "markdown-preview-enhanced.previewTheme": "vscode.css",
+  "markdown-preview-enhanced.revealjsTheme": "vscode.css",
+  "markdown-preview-enhanced.printBackground": true,
+  "markdown-preview-enhanced.latexEngine": "pdflatex",
+  "markdown-preview-enhanced.chromePath": "/usr/bin/chromium",
+
+  /* ============================================================
+   * JSON
+   * Prettier is the default formatter; json.format.enable keeps
+   * the built-in formatter available as a fallback ("Format
+   * Document With..."). Not a conflict — defaultFormatter wins.
+   * ============================================================ */
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+  },
+  "json.format.enable": true,
+  "json.schemaDownload.trustedDomains": {
+    "https://developer.microsoft.com/json-schemas/": true,
+    "https://json-schema.org/": true,
+    "https://json.schemastore.org/": true,
+    "https://models.dev/model-schema.json": true,
+    "https://opencode.ai": true,
+    "https://raw.githubusercontent.com/devcontainers/spec/": true,
+    "https://raw.githubusercontent.com/microsoft/vscode/": true,
+    "https://schemastore.azurewebsites.net/": true,
+    "https://www.schemastore.org/": true,
+  },
+
+  /* ============================================================
+   * Python
+   * ============================================================ */
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "strict",
+
+  // Performance & Resource Overrides
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.useLibraryCodeForTypes": false,
+  "python.analysis.enablePytestSupport": false,
+  "python.analysis.autoImportCompletions": false,
+
+  // Explicitly disabling AI integrations
+  "python.analysis.autoTranslateDocstrings": false,
+  "python.analysis.aiCodeActions": {
+    "implementAbstractClasses": false,
+    "generateSymbol": false,
+    "generateDocstring": false,
+  },
+
+  // Micromamba integration
+  "python.condaPath": "/home/skurtz/.local/bin/micromamba",
+  "python.venvPath": "/home/skurtz/.micromamba/envs",
+
+  /* ============================================================
+   * C / C++ (Pure Clangd - No Microsoft Bloat)
+   * ============================================================ */
+  "clangd.arguments": [
+    "--background-index",
+    "--clang-tidy",
+    "--completion-style=detailed",
+    "--header-insertion=iwyu",
+    "-j=12", // Allocates 12 of your 20 cores to fast background indexing
+  ],
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+  },
+  "[c]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+  },
+
+  /* ============================================================
+   * Svelte
+   * ============================================================ */
+  "svelte.enable-ts-plugin": true,
+
+  /* ============================================================
+   * Claude Code
+   * ============================================================ */
+  "claudeCode.preferredLocation": "panel",
+}
