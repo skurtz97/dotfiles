@@ -16,16 +16,16 @@ TARGET := ~
 deploy:
 	@echo "${CYAN}==> Deploying dotfiles...${NC}"
 	for pkg in $(PACKAGES); do \
-		echo "${GREEN}Stowing package: $$pkg${NC}"; \
+		echo -e "${GREEN}Stowing package: $$pkg${NC}"; \
 		stow -v -t $(TARGET) $$pkg; \
 	done
-	@echo "${GREEN}Deployment complete.${NC}"
+	@echo -e "${GREEN}Deployment complete.${NC}"
 
 # Removes all symlinks managed by these packages
 clean:
 	@echo "${RED}==> Unstowing dotfiles...${NC}"
 	for pkg in $(PACKAGES); do \
-		echo "${RED}Unstowing package: $$pkg${NC}"; \
+		echo -e "${RED}Unstowing package: $$pkg${NC}"; \
 		stow -v -D -t $(TARGET) $$pkg; \
 	done
-	@echo "${RED}Clean complete.${NC}"
+	@echo -e "${RED}Clean complete.${NC}"
