@@ -1,0 +1,11 @@
+// Place your key bindings in this file to override the defaults
+[
+    {
+        "key": "ctrl+shift+0",
+        "command": "ollama-autocoder.autocomplete"
+    },
+    {
+        "key": "ctrl+u",
+        "command": "deleteAllLeft"
+    }
+]

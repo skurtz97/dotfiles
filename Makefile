@@ -5,7 +5,7 @@ RED     := \033[0;31m
 NC      := \033[0m # No Color
 
 # Define "packages" to manage
-PACKAGES := bash vscode xdg
+PACKAGES := bash vscode vscode-meta gamemode xdg scripts systemd
 
 # Target directory for symlinks (my home directory)
 TARGET := ~
