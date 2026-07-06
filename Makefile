@@ -10,7 +10,7 @@ PACKAGES := bash vscode xdg
 # Target directory for symlinks (my home directory)
 TARGET := ~
 
-.PHONY: deploy clean
+.PHONY: deploy clean archive
 
 # Deploys all packages
 deploy:
@@ -19,7 +19,7 @@ deploy:
 		echo -e "${GREEN}Stowing package: $$pkg${NC}"; \
 		stow -v -t $(TARGET) $$pkg; \
 	done
-	@echo -e "${GREEN}Deployment complete.${NC}"
+	@echo -e"${GREEN}Deployment complete.${NC}"
 
 # Removes all symlinks managed by these packages
 clean:
@@ -29,3 +29,9 @@ clean:
 		stow -v -D -t $(TARGET) $$pkg; \
 	done
 	@echo -e "${RED}Clean complete.${NC}"
+
+# Automated Backup Target
+archive:
+	echo -e "${CYAN}==> Starting automated backup...${NC}"
+	/home/skurtz/bin/backup-home.sh
+	echo -e "${GREEN}Backup complete.${NC}"
