@@ -10,16 +10,16 @@ PACKAGES := bash vscode xdg
 # Target directory for symlinks (my home directory)
 TARGET := ~
 
-.PHONY: deploy clean archive
+.PHONY: deploy clean archive systemd
 
 # Deploys all packages
 deploy:
-	@echo "${CYAN}==> Deploying dotfiles...${NC}"
+	@echo -e "${CYAN}==> Deploying dotfiles...${NC}"
 	for pkg in $(PACKAGES); do \
 		echo -e "${GREEN}Stowing package: $$pkg${NC}"; \
 		stow -v -t $(TARGET) $$pkg; \
 	done
-	@echo -e"${GREEN}Deployment complete.${NC}"
+	@echo -e "${GREEN}Deployment complete.${NC}"
 
 # Removes all symlinks managed by these packages
 clean:

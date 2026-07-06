@@ -1,0 +1,7 @@
+[Unit]
+Description=Rclone Google Drive Backup
+
+[Service]
+Type=oneshot
+# Uses the script deployed by your 'scripts' package
+ExecStart=/home/skurtz/bin/backup-home.sh
