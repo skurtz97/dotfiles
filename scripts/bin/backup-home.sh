@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
 set -euo pipefail
 
 REMOTE="gdrive:Workstation_Backups"
-FILTER_FILE="/home/skurtz/src/dotfiles/backup-filters.txt"
 
 echo "Starting unified backup to $REMOTE..."
 
-# Use sync with the filter file.
-# --fast-list : pre-calculates the remote directory structure.
-# --filter-from : uses the file above to include/exclude.
+# Filters apply to the local source paths (first match wins).
+#   --fast-list : pre-calculates the remote directory structure.
+#   --filter    : include/exclude rules, applied top to bottom.
 rclone sync /home/skurtz "$REMOTE" \
-    --filter-from "$FILTER_FILE" \
+    --filter="- **/.git/**" \
+    --filter="- .~lock.*#" \
+    --filter="+ docs/**" \
+    --filter="+ .ssh/**" \
+    --filter="+ ComfyUI/user/default/workflows/**" \
+    --filter="- **" \
     --transfers=8 \
     --checkers=16 \
     --fast-list \
