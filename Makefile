@@ -4,7 +4,7 @@ GREEN   := \033[0;32m
 RED     := \033[0;31m
 NC      := \033[0m
 
-PACKAGES := bash vscode vscode-meta gamemode xdg scripts systemd
+PACKAGES := bash vscode vscode-meta xdg scripts systemd
 TARGET := ~
 
 .PHONY: deploy clean archive
