@@ -14,11 +14,10 @@ NC='\033[0m'
 
 echo -e "${BLUE}=== Starting System Maintenance & Cleanup ===${NC}\n"
 
-# 1. Enforce root privileges upfront
+# 1. Elevate privileges up front for system tasks
 if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}[!] Error: This script must be run with sudo.${NC}" >&2
-    echo -e "${RED}    Usage: sudo system-clean.sh${NC}" >&2
-    exit 1
+    echo -e "${YELLOW}[!] Elevating to root for system tasks...${NC}"
+    sudo -v
 fi
 
 # 2. Clean DNF Cache and Unused Dependencies
