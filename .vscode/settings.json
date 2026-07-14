@@ -1,3 +1,11 @@
 {
-  "Lua.diagnostics.globals": ["vim"]
+  "Lua.runtime.version": "LuaJIT",
+  "Lua.diagnostics.globals": ["vim"],
+  "Lua.workspace.library": [
+    "/usr/share/nvim/runtime/lua",
+    "/usr/share/nvim/runtime/lua/vim",
+    "/usr/share/nvim/runtime/lua/vim/lsp",
+    "${3rd}/luv/library"
+  ],
+  "Lua.workspace.checkThirdParty": false
 }
