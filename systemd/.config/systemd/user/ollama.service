@@ -1,18 +1,23 @@
 [Unit]
-Description=Ollama Service
+Description=Ollama Service (Native ROCm)
 After=network-online.target
 
 [Service]
+# Point to custom-built binary location
 ExecStart=/home/skurtz/src/ollama/ollama serve
-# Ensure the working directory is the folder containing the binary
-WorkingDirectory=/home/skurtz/src/ollama
-# Inject the ROCm/RDNA 4 overrides
-Environment="HSA_OVERRIDE_GFX_VERSION=12.0.1"
-Environment="LD_LIBRARY_PATH=/opt/rocm-7.2.0/lib"
 
+# Essential for RDNA 4 / gfx1201 architecture recognition
+Environment="HSA_OVERRIDE_GFX_VERSION=12.0.1"
+
+# Standard model storage location
+Environment="OLLAMA_MODELS=/home/skurtz/.ollama/models"
+
+# Ensure the system loader finds your ROCm libraries
+Environment="LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64"
+
+# Stability settings
 Restart=always
 RestartSec=3
-
 
 [Install]
 WantedBy=default.target

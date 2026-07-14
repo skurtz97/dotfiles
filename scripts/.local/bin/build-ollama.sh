@@ -13,9 +13,9 @@ THREADS=$(nproc)
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 BLUE='\033[0;34m'
-NC='\033[0m'
+NC='\033[0m' # No Color
 
-# --- Error Handling ---
+# --- Helpers ---
 error_exit() {
     echo -e "${RED}[ERROR] $1${NC}" >&2
     exit 1
@@ -24,7 +24,7 @@ error_exit() {
 cleanup_on_exit() {
     local exit_code=$?
     if [ $exit_code -ne 0 ]; then
-        echo -e "${RED}[!] Build process failed. Check output for errors.${NC}"
+        echo -e "${RED}[!] Build process failed with code $exit_code.${NC}"
     fi
 }
 trap cleanup_on_exit EXIT SIGINT SIGTERM
@@ -41,8 +41,8 @@ echo -e "${GREEN}[*] Cloning fresh repository...${NC}"
 git clone "$REPO_URL" "$OLLAMA_ROOT"
 cd "$OLLAMA_ROOT" || error_exit "Could not enter $OLLAMA_ROOT"
 
-# 2. Configure Build
-# Using your verified flags for ROCm v7.2 and gfx1201
+# 2. Configure Backend
+# Using your verified configuration for RDNA 4 / ROCm 7.2
 echo -e "${GREEN}[*] Configuring CMake (ROCm v7.2)...${NC}"
 cmake -B build . \
     -DOLLAMA_LLAMA_BACKENDS="rocm_v7_2" \
@@ -51,13 +51,15 @@ cmake -B build . \
     -DCMAKE_BUILD_TYPE=Release \
     || error_exit "CMake configuration failed."
 
-# 3. Build Backend
-echo -e "${GREEN}[*] Compiling backend with $THREADS threads...${NC}"
+# 3. Build Backend Engine
+echo -e "${GREEN}[*] Compiling backend server with $THREADS threads...${NC}"
 cmake --build build --parallel "$THREADS" \
-    || error_exit "C++ compilation failed."
+    || error_exit "Backend compilation failed."
 
 # 4. Build Go Wrapper
 echo -e "${GREEN}[*] Compiling Go binary...${NC}"
-go build -tags rocm . || error_exit "Go build failed."
+go build -tags rocm . \
+    || error_exit "Go build failed."
 
-echo -e "${BLUE}=== Build Successful! Binary is at $OLLAMA_ROOT/ollama ===${NC}"
+echo -e "${BLUE}=== Build Successful! ===${NC}"
+echo -e "Binary location: ${GREEN}$OLLAMA_ROOT/ollama${NC}"
