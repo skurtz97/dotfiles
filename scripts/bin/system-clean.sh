@@ -30,20 +30,24 @@ sudo dnf autoremove -y
 # 3. Prune Old Kernels
 # Retains the active kernel and the immediate previous backup, freeing up /boot
 echo -e "${GREEN}[*] Checking for old kernels to remove...${NC}"
-mapfile -t old_kernels < <(dnf repoquery --installonly --latest-limit=-2 -q)
+mapfile -t old_kernels < <(
+    dnf repoquery \
+        --installonly \
+        --latest-limit=-2 \
+        -q
+)
 
 if [ ${#old_kernels[@]} -gt 0 ]; then
     echo -e "${YELLOW}[!] Removing older kernels: ${old_kernels[*]}${NC}"
-    sudo dnf remove "${old_kernels[@]}" -y
+    dnf remove "${old_kernels[@]}" -y
 else
     echo -e "${GREEN}[*] No old kernels to remove.${NC}"
 fi
 
 # 4. Vacuum Systemd Journal Logs
-# With ComfyUI, Jellyfin, and Llama.cpp churning, logs can balloon quickly.
-# This keeps only the last 7 days of logs.
+# Keeps logs in check from background workloads (Jellyfin, Llama.cpp, etc.)
 echo -e "${GREEN}[*] Vacuuming systemd logs to the last 7 days...${NC}"
-sudo journalctl --vacuum-time=7d
+journalctl --vacuum-time=7d
 
 # 5. Clean Unused Flatpak Runtimes
 if command -v flatpak &> /dev/null; then
@@ -51,19 +55,27 @@ if command -v flatpak &> /dev/null; then
     flatpak uninstall --unused -y
 fi
 
-# 6. User-level Cache Pruning (Safe cleanup of files unaccessed in 30 days)
-echo -e "${GREEN}[*] Trimming user ~/.cache (older than 30 days)...${NC}"
-find "$HOME/.cache" -type f -atime +30 -delete 2>/dev/null || true
+# 6. User-level Cache Pruning (Files unaccessed in 30 days)
+# We find the real username when run under sudo to target the correct path.
+TARGET_HOME=$(eval echo "~${SUDO_USER}")
+echo -e "${GREEN}[*] Trimming user cache older than 30 days...${NC}"
+find "${TARGET_HOME}/.cache" \
+    -type f \
+    -atime +30 \
+    -delete 2>/dev/null || true
+
 
 # 7. Purge Broken Symlinks
-# Crucial for dotfile management. If you remove or rename files in your repo, 
-# Stow can leave behind dead links. This cleans up dead links up to 3 levels 
-# deep.
-echo -e "${GREEN}[*] Sweeping home directory for dead Stow symlinks...${NC}"
-find "$HOME" -maxdepth 3 -xtype l -delete 2>/dev/null || true
+# Sweeps away dangling Stow links up to 3 directory layers deep.
+echo -e "${GREEN}[*] Sweeping home directory for dead symlinks...${NC}"
+find "${TARGET_HOME}" \
+    -maxdepth 3 \
+    -xtype l \
+    -delete 2>/dev/null || true
 
 # 8. BTRFS / SSD Optimization
-# Triggers a TRIM command across NVMe and SATA SSD arrays to keep IO speeds
-# optimal.
+# Triggers a TRIM command across NVMe and SATA SSD storage topologies.
 echo -e "${GREEN}[*] Issuing fstrim across BTRFS storage pools...${NC}"
-sudo fstrim -av
+fstrim -av
+
+echo -e "\n${BLUE}=== System Cleaned Successfully! ===${NC}"
