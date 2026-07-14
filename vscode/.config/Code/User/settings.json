@@ -103,6 +103,7 @@
   // responsiveness (possible renderer hangs on big logs/JSON) for
   // full editing features. Delete this line to restore the default.
   "editor.largeFileOptimizations": true,
+  "editor.rulers": [80],
 
   /* ============================================================
    * Terminal
@@ -224,4 +225,5 @@
    * Claude Code
    * ============================================================ */
   "claudeCode.preferredLocation": "panel",
+  "cmake.showConfigureWithDebuggerNotification": false,
 }

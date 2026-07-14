@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# Script that backs up important stuff from my home filesystem to 
+# Google Drive where I have ~5TiB storage available.
 set -euo pipefail
 
 REMOTE="gdrive:Workstation_Backups"
