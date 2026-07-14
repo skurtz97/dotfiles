@@ -23,7 +23,8 @@ To setup on a new machine:
 1. Clone the repository:
 
     ```bash
-    git clone <your-repo-url> ~/src/dotfiles
+    mkdir -p ~/src
+    git clone https://github.com/skurtz97/dotfiles ~/src/dotfiles
     cd ~/src/dotfiles
     ```
 
