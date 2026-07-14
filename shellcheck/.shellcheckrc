@@ -1,0 +1,8 @@
+# Follow `source` / `.` into external files (e.g. .bash_profile -> .bashrc)
+external-sources=true
+
+# Resolve relative `# shellcheck source=` paths against the directory of the
+# file being checked. These dotfiles live in $HOME, so that's where the
+# sourced targets (.bashrc, etc.) are found.
+source-path=SCRIPTDIR
+
