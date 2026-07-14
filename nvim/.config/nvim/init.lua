@@ -32,5 +32,26 @@ require("lazy").setup({
       vim.cmd.colorscheme("kanagawa")
     end
   },
-})
+  -- Tree-sitter: High-performance syntax highlighting
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    config = function()
+      require("nvim-treesitter.configs").setup({
+        -- Languages to install (add more as you need them)
+        ensure_installed = { "lua", "vim", "bash", "markdown", "c", "rust" },
 
+        -- Enable high-performance syntax highlighting
+        highlight = {
+          enable = true,
+          additional_vim_regex_highlighting = false,
+        },
+
+        -- Enable indentation based on the tree
+        indent = {
+          enable = true,
+        },
+      })
+    end,
+  }
+})
