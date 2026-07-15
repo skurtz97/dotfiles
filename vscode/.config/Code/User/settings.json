@@ -124,7 +124,7 @@
    * Built-in blame replaces the Git Blame extension.
    * ============================================================ */
   "git.confirmSync": false,
-  "git.blame.editorDecoration.enabled": true,
+  "git.blame.editorDecoration.enabled": false,
   "git.blame.statusBarItem.enabled": true,
 
   /* ============================================================
