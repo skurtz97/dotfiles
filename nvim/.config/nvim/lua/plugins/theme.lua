@@ -1,14 +1,17 @@
 -- ~/.config/nvim/lua/plugins/theme.lua
+-- ~/.config/nvim/lua/plugins/theme.lua
 return {
   {
-    "rebelot/kanagawa.nvim",
+    "scottmckendry/cyberdream.nvim",
+    lazy = false,
     priority = 1000,
-    config = function()
-      require("kanagawa").setup({
-        background = { dark = "wave", light = "lotus" },
-        theme = "wave",
-      })
-      vim.cmd.colorscheme("kanagawa")
+    opts = {
+      variant = "default", -- dark variant is the default
+      italic_comments = true,
+    },
+    config = function(_, opts)
+      require("cyberdream").setup(opts)
+      vim.cmd.colorscheme("cyberdream")
     end,
   },
 }

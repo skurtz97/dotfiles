@@ -226,4 +226,31 @@
    * ============================================================ */
   "claudeCode.preferredLocation": "panel",
   "cmake.showConfigureWithDebuggerNotification": false,
+  "pgsql.serverGroups": [
+    {
+      "name": "Servers",
+      "id": "067AC748-069B-4EDC-B8C4-4E8DB31E32D6",
+      "isDefault": true,
+    },
+  ],
+  "pgsql.connections": [
+    {
+      "id": "9F8E7E40-3774-4E58-8C4F-8AA6E06DE6C0",
+      "groupId": "067AC748-069B-4EDC-B8C4-4E8DB31E32D6",
+      "authenticationType": "SqlLogin",
+      "connectTimeout": 15,
+      "applicationName": "vscode-pgsql",
+      "clientEncoding": "utf8",
+      "sslmode": "prefer",
+      "sshSavePassword": true,
+      "savePassword": true,
+      "sslRootCertMode": "none",
+      "server": "localhost",
+      "user": "skurtz",
+      "password": "",
+      "profileName": "localhost",
+      "expiresOn": 0,
+      "sshPassword": "",
+    },
+  ],
 }
