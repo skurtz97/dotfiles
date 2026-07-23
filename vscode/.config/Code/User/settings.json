@@ -226,6 +226,10 @@
    * ============================================================ */
   "claudeCode.preferredLocation": "panel",
   "cmake.showConfigureWithDebuggerNotification": false,
+
+  /* ============================================================
+   * PostgreSQL
+   * ============================================================ */
   "pgsql.serverGroups": [
     {
       "name": "Servers",
