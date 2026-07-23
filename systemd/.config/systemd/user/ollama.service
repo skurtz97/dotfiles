@@ -13,7 +13,16 @@ Environment="HSA_OVERRIDE_GFX_VERSION=12.0.1"
 Environment="OLLAMA_MODELS=/home/skurtz/.ollama/models"
 
 # Ensure the system loader finds your ROCm libraries
-Environment="LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64"
+Environment="LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64
+
+# Required for KV cache quantization; keeps the fused FA kernel on HIP
+Environment="OLLAMA_FLASH_ATTENTION=1"
+
+# Symmetric K/V - halves cache footprint on 16 attention layers
+Environment="OLLAMA_KV_CACHE_TYPE=q8_0"
+
+# Never unload; reloading a 16.8 GiB partial offload model is slow
+Environment="OLLAMA_KEEP_ALIVE=-1"
 
 # Stability settings
 Restart=always
