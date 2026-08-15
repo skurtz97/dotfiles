@@ -67,11 +67,11 @@ alias sctlu='systemctl --user'
 
 # eza (modern ls). Interactive-only, so /usr/bin/ls and /usr/bin/tree
 # stay untouched for scripts. Use \ls to bypass an alias on demand.
-alias ls='eza --icons --group-directories-first'
-alias ll='eza -l --git --icons --group-directories-first'
-alias la='eza -la --git --icons --group-directories-first'
-alias lt='eza --tree --level=2 --icons --group-directories-first'
-alias tree='eza --tree --icons --group-directories-first --git-ignore'
+alias ls='eza --group-directories-first'
+alias ll='eza -l --git --group-directories-first'
+alias la='eza -la --git --group-directories-first'
+alias lt='eza --tree --level=2 --group-directories-first'
+alias tree='eza --tree --group-directories-first --git-ignore'
 
 # -----------------------------------------------------------------------------
 # Completion: make complete-alias work through the aliases above

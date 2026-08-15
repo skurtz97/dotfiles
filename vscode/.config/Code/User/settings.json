@@ -187,7 +187,7 @@
 
   // Performance & Resource Overrides
   "python.analysis.diagnosticMode": "openFilesOnly",
-  "python.analysis.useLibraryCodeForTypes": false,
+  "python.analysis.useLibraryCodeForTypes": true,
   "python.analysis.enablePytestSupport": false,
   "python.analysis.autoImportCompletions": false,
 
@@ -261,4 +261,5 @@
       "sshPassword": "",
     },
   ],
+  "mesonbuild.downloadLanguageServer": true,
 }
