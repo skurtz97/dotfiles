@@ -1,6 +1,6 @@
 FROM /home/skurtz/.models/Qwen3.8-27B-Cold-Fusion-GAIN-V1.1-NM-DAU-NEO-MAX-NEO-IQ3_M.gguf
 RENDERER qwen3.8
-PARSER qwen3.8
+PARSER qwen3.5
 PARAMETER temperature 1.0
 PARAMETER top_p 0.95
 PARAMETER top_k 20
