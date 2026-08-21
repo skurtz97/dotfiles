@@ -61,9 +61,6 @@ alias vim='nvim'
 alias vscode='code'
 alias conda='micromamba'
 alias mamba='micromamba'
-alias systemctlu='systemctl --user'
-alias sctl='sudo systemctl'
-alias sctlu='systemctl --user'
 
 # eza (modern ls). Interactive-only, so /usr/bin/ls and /usr/bin/tree
 # stay untouched for scripts. Use \ls to bypass an alias on demand.
