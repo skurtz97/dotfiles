@@ -1,0 +1,12 @@
+[Unit]
+Description=Radarr Movie Collection Manager
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/opt/Radarr/Radarr -nobrowser -data=%h/.config/Radarr
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
