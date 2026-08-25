@@ -1,5 +1,6 @@
 # .bashrc
 # shellcheck shell=bash
+ # shellcheck disable=SC2034
 
 # =============================================================================
 # ~/.bashrc — interactive shell config (PATH/env setup lives in .bash_profile)
@@ -79,6 +80,26 @@ if [ -f ~/.complete_alias ]; then
     complete -F _complete_alias \
         vi vim vscode conda mamba systemctlu sctl sctlu \
         ls ll la lt tree
+fi
+
+# -----------------------------------------------------------------------------
+# Prompt: git branch/status via git-core's contrib helper
+# Provided by the `git-core` package on Fedora.
+# -----------------------------------------------------------------------------
+if [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
+    # shellcheck source=/dev/null
+    . /usr/share/git-core/contrib/completion/git-prompt.sh
+
+    GIT_PS1_SHOWDIRTYSTATE=1      # * staged, + unstaged
+    GIT_PS1_SHOWSTASHSTATE=1      # $ if stashed
+    GIT_PS1_SHOWUNTRACKEDFILES=1  # % if untracked
+    GIT_PS1_SHOWUPSTREAM="auto"   # </>/= vs upstream
+    GIT_PS1_SHOWCOLORHINTS=1      # requires PROMPT_COMMAND form
+
+    # \u@\h  \w  (branch)
+    PROMPT_COMMAND='__git_ps1 "\[\e[32m\]\u@\h\[\e[0m\]:\[\e[34m\]\w\[\e[0m\]" "\\\$ "'
+else
+    PS1='\[\e[32m\]\u@\h\[\e[0m\]:\[\e[34m\]\w\[\e[0m\]\$ '
 fi
 
 # -----------------------------------------------------------------------------

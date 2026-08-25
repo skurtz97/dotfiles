@@ -4,3 +4,5 @@
 
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+[credential "https://gitlab.com"]
+	helper = /usr/libexec/git-core/git-credential-libsecret
