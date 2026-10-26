@@ -17,7 +17,8 @@ readonly SRC_DIR="${HOME}/src/llama.cpp"
 readonly BUILD_DIR="${SRC_DIR}/build"
 readonly PREFIX="${HOME}/.local"
 readonly GFX="gfx1201"
-readonly TARGETS=(llama-server llama-cli llama-bench)
+readonly TARGETS=(llama-server llama-cli llama-bench llama-quantize
+    llama-gguf-split)
 
 # Set by find_rocm
 HIP_ROOT=""
