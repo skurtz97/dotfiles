@@ -17,7 +17,6 @@ path_append() {
 
 # Personal bin dirs, highest priority at the front
 path_prepend "$HOME/.npm-global/bin"
-path_prepend "$HOME/.opencode/bin"
 path_prepend "$HOME/.local/bin"
 path_prepend "$HOME/bin"
 
