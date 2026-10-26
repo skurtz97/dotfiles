@@ -6,12 +6,12 @@
 TARGET   := $(HOME)
 
 # List of all dotfile packages to manage with Stow
-PACKAGES := bash git nvim scripts systemd vscode vscode-meta xdg shellcheck nautilus
+PACKAGES := bash git nvim systemd vscode vscode-meta xdg shellcheck nautilus
 
 # Stow base arguments (-v: verbose, --target: destination)
 STOW_CMD := stow -v --target="$(TARGET)"
 
-.PHONY: all stow restow adopt delete clean-links scripts help
+.PHONY: all stow restow adopt delete clean-links help
 
 # Default action when just running `make`
 all: restow

@@ -8,7 +8,7 @@ This repository houses my personal workstation configuration for Fedora 44. It i
 .
 ├── bash/        # Shell configuration (.bashrc, .bash_profile)
 ├── nvim/        # Neovim configuration (~/.config/nvim/)
-├── scripts/     # Custom user scripts (~/.local/bin/)
+# Scripts live in a separate repo: github.com/skurtz97/scripts
 ├── systemd/     # User-level systemd services
 ├── vscode/      # VS Code settings and keybindings
 ├── vscode-meta/ # VS Code metadata (e.g., argv.json)
