@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# w3-run: instrumented launch wrapper for The Witcher 3 (Proton/vkd3d-proton, gamescope, HDR).
+# Steam launch options:  /home/skurtz/.local/bin/w3-run [-v] [-g] [-r] [-l] [-c] -- %command%
+#   -v  verbose: print progress and log dir to stderr
+#   -g  no gamescope (isolates gamescope as the cause)
+#   -r  RADV_DEBUG=hang: sync after every submit, dump hang state to ~/radv_dumps_* (very slow)
+#   -l  keep REDprelauncher (default: launch bin/x64_dx12/witcher3.exe directly)
+#   -c  gamescope --force-grab-cursor (crashes gamescope on launcher->game window handoff)
+#   -w  native Wine-Wayland + HDR (PROTON_ENABLE_WAYLAND/HDR), implies -g; needs Proton Experimental
+#   -b  vkBasalt post-processing (config: ~/.config/vkBasalt/w3.conf, Home toggles in game)
+#   -m  single-monitor: disable DP-5 while running, restore on exit (KDE: kscreen-doctor, GNOME: gdctl)
+# Logs: ~/.local/state/w3/<timestamp>/
+
+set -euo pipefail
+
+readonly GPU_ID="1002:7550"
+readonly W=2560 H=1440 R=240
+
+# gdctl layouts (mode strings from `gdctl show`; bt2100 = desktop HDR on DP-4)
+readonly MAIN=(--logical-monitor --primary --x 0 --y 0
+               --monitor DP-4 --mode 2560x1440@239.913+vrr --color-mode bt2100)
+readonly SIDE=(--logical-monitor --x 2560 --y 0
+               --monitor DP-5 --mode 2560x1440@164.958)
+
+VERBOSE=0
+GAMESCOPE=1
+RADV_HANG=0
+LAUNCHER=0
+GRAB=0
+SINGLE=0
+WAYLAND=0
+BASALT=0
+
+usage() { echo "usage: ${0##*/} [-v] [-g] [-r] [-l] [-c] [-m] [-w] [-b] -- %command%" >&2; exit 2; }
+vlog() { if (( VERBOSE )); then printf '%s: %s\n' "${0##*/}" "$*" >&2; fi; }
+
+while getopts "vgrlcmwb" opt; do
+    case "$opt" in
+        v) VERBOSE=1 ;;
+        g) GAMESCOPE=0 ;;
+        r) RADV_HANG=1 ;;
+        l) LAUNCHER=1 ;;
+        c) GRAB=1 ;;
+        m) SINGLE=1 ;;
+        w) WAYLAND=1; GAMESCOPE=0 ;;
+        b) BASALT=1 ;;
+        *) usage ;;
+    esac
+done
+shift $((OPTIND - 1))
+(( $# )) || usage
+
+# Already inside gamescope (e.g. embedded GDM session): never nest, keep its WSI layer
+INSIDE_GS=0
+if [ -n "${GAMESCOPE_WAYLAND_DISPLAY:-}" ]; then INSIDE_GS=1; GAMESCOPE=0; fi
+
+# Replace REDprelauncher.exe (last arg of %command%) with the DX12 game exe
+args=("$@")
+last=$(( ${#args[@]} - 1 ))
+if (( ! LAUNCHER )) && [[ ${args[last]} == *REDprelauncher.exe ]]; then
+    exe="${args[last]%/*}/bin/x64_dx12/witcher3.exe"
+    [[ -f $exe ]] || { echo "${0##*/}: not found: $exe" >&2; exit 1; }
+    args[last]=$exe
+fi
+
+LOG="${XDG_STATE_HOME:-$HOME/.local/state}/w3/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$LOG"
+vlog "logging to $LOG"
+
+# --- Environment snapshot ---
+{
+    echo "kernel: $(uname -r)"
+    rpm -q mesa-vulkan-drivers linux-firmware gamescope 2>/dev/null || true
+    printf 'cmd:'; printf ' %q' "${args[@]}"; echo
+} > "$LOG/info.txt"
+
+# --- Monitor layout helpers (KDE: kscreen-doctor; GNOME: gdctl) ---
+is_kde() { [[ ${XDG_CURRENT_DESKTOP:-} == *KDE* ]]; }
+single_on() {
+    if is_kde; then kscreen-doctor output.DP-5.disable
+    else gdctl set "${MAIN[@]}"; fi
+}
+# shellcheck disable=SC2329  # called from cleanup via trap
+single_off() {
+    if is_kde; then kscreen-doctor output.DP-5.enable
+    else gdctl set "${MAIN[@]}" "${SIDE[@]}"; fi
+}
+
+# --- Cleanup: stop collectors, restore monitor layout ---
+# shellcheck disable=SC2329  # invoked via trap
+cleanup() {
+    jobs -p | xargs -r kill 2>/dev/null
+    if (( SINGLE )); then
+        single_off >> "$LOG/info.txt" 2>&1 \
+            || echo "${0##*/}: layout restore failed, see $LOG/info.txt" >&2
+    fi
+}
+trap cleanup EXIT
+
+if (( SINGLE )); then
+    vlog "single-monitor mode"
+    single_on >> "$LOG/info.txt" 2>&1 \
+        || { echo "${0##*/}: single-monitor switch failed, see $LOG/info.txt" >&2; exit 1; }
+    sleep 2  # let the compositor settle before gamescope picks an output
+fi
+
+# Kernel log (amdgpu ring timeouts, resets, page faults)
+journalctl -k -f -n 0 -o short-iso > "$LOG/kernel.log" 2>&1 &
+
+# GPU sensors @1 Hz: temps (m°C) then power (µW); fsync'd so it survives hard lockups
+hw=$(grep -l '^amdgpu$' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -n1 || true)
+if [ -n "$hw" ]; then
+    hw=${hw%/name}
+    sensors="$LOG/sensors.log"
+    while :; do
+        printf '%s %s\n' "$(date +%T)" \
+            "$(cat "$hw"/temp*_input "$hw"/power1_average "$hw"/power1_input 2>/dev/null | tr '\n' ' ')" \
+            >> "$sensors"
+        sync "$sensors"
+        sleep 1
+    done &
+fi
+
+# --- Game environment ---
+export PROTON_LOG=1 PROTON_LOG_DIR="$LOG"
+export VKD3D_CONFIG=breadcrumbs VKD3D_DEBUG=warn VKD3D_LOG_FILE="$LOG/vkd3d.log"
+export VKD3D_FILTER_DEVICE_NAME="AMD Radeon RX 9070 XT" DXVK_FILTER_DEVICE_NAME="AMD Radeon RX 9070 XT"
+export MESA_VK_DEVICE_SELECT="$GPU_ID"
+export DXVK_HDR=1 DXVK_LOG_LEVEL=info DXVK_LOG_PATH="$LOG"
+if (( GAMESCOPE || INSIDE_GS )); then export ENABLE_GAMESCOPE_WSI=1; else export ENABLE_GAMESCOPE_WSI=0; fi
+if (( WAYLAND )); then export PROTON_ENABLE_WAYLAND=1 PROTON_ENABLE_HDR=1 WAYLANDDRV_PRIMARY_MONITOR=DP-4; fi
+if (( RADV_HANG )); then export RADV_DEBUG=hang; fi
+if (( BASALT )); then
+    conf="${XDG_CONFIG_HOME:-$HOME/.config}/vkBasalt/w3.conf"
+    [[ -f $conf ]] || { echo "${0##*/}: missing $conf" >&2; exit 1; }
+    export ENABLE_VKBASALT=1 VKBASALT_CONFIG_FILE="$conf" VKBASALT_LOG_FILE="$LOG/vkbasalt.log"
+fi
+
+gs=(gamescope --prefer-vk-device "$GPU_ID" -W "$W" -H "$H" -w "$W" -h "$H" -r "$R" -f --hdr-enabled)
+if (( GRAB )); then gs+=(--force-grab-cursor); fi
+
+# --- Run ---
+set +e
+if (( GAMESCOPE )); then
+    "${gs[@]}" -- "${args[@]}" > "$LOG/game.log" 2>&1
+else
+    "${args[@]}" > "$LOG/game.log" 2>&1
+fi
+rc=$?
+set -e
+echo "exit: $rc" >> "$LOG/info.txt"
+
+# --- Post-mortem hints ---
+sleep 2  # let journal flush
+if grep -qiE 'amdgpu.*(timeout|reset|fault|hang)' "$LOG/kernel.log"; then
+    echo "${0##*/}: GPU fault in $LOG/kernel.log" >&2
+    ls /sys/class/drm/card*/device/devcoredump/data >> "$LOG/info.txt" 2>/dev/null || true
+fi
+vlog "exit $rc, logs in $LOG"
+exit "$rc"
