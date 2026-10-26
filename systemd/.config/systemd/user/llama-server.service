@@ -1,0 +1,12 @@
+[Unit]
+Description=llama.cpp server (model chosen by `llm use`)
+After=network-online.target
+
+[Service]
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+ExecStart=%h/.local/bin/llm serve
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
