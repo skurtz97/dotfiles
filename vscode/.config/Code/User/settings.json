@@ -28,6 +28,48 @@
   "window.controlsStyle": "custom",
 
   /* ============================================================
+   * Editor
+   * ============================================================ */
+  "editor.fontFamily": "CodeNewRoman Nerd Font Mono",
+  "editor.fontSize": 15,
+  "editor.fontWeight": "bold",
+  "editor.fontLigatures": true,
+  "editor.fontVariations": true,
+  "editor.cursorStyle": "line",
+  // NOTE: false DISABLES the large-file safety mode, forcing full
+  // tokenization and extension features on huge files. This trades
+  // responsiveness (possible renderer hangs on big logs/JSON) for
+  // full editing features. Delete this line to restore the default.
+  "editor.largeFileOptimizations": true,
+  "editor.rulers": [80],
+
+  /* ============================================================
+   * Terminal
+   * ============================================================ */
+  "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.fontWeight": "bold",
+  "terminal.integrated.gpuAcceleration": "auto",
+
+  /* ============================================================
+   * Explorer
+   * ============================================================ */
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+
+  /* ============================================================
+   * Claude Code
+   * ============================================================ */
+
+  /* ============================================================
+   * Git
+   * Built-in blame replaces the Git Blame extension.
+   * ============================================================ */
+  "git.confirmSync": false,
+  "git.blame.editorDecoration.enabled": false,
+  "git.blame.statusBarItem.enabled": true,
+
+  /* ============================================================
    * Performance: File Watcher & Search Limits
    * ============================================================ */
   "files.watcherExclude": {
@@ -90,67 +132,13 @@
   },
 
   /* ============================================================
-   * Editor
-   * ============================================================ */
-  "editor.fontFamily": "CodeNewRoman Nerd Font Mono",
-  "editor.fontSize": 15,
-  "editor.fontWeight": "bold",
-  "editor.fontLigatures": true,
-  "editor.fontVariations": true,
-  "editor.cursorStyle": "line",
-  // NOTE: false DISABLES the large-file safety mode, forcing full
-  // tokenization and extension features on huge files. This trades
-  // responsiveness (possible renderer hangs on big logs/JSON) for
-  // full editing features. Delete this line to restore the default.
-  "editor.largeFileOptimizations": true,
-  "editor.rulers": [80],
-
-  /* ============================================================
-   * Terminal
-   * ============================================================ */
-  "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
-  "terminal.integrated.fontSize": 14,
-  "terminal.integrated.fontWeight": "bold",
-  "terminal.integrated.gpuAcceleration": "auto",
-
-  /* ============================================================
-   * Explorer
-   * ============================================================ */
-  "explorer.confirmDelete": false,
-  "explorer.confirmDragAndDrop": false,
-
-  /* ============================================================
-   * Claude Code
-   * ============================================================ */
-
-  /* ============================================================
-   * Git
-   * Built-in blame replaces the Git Blame extension.
-   * ============================================================ */
-  "git.confirmSync": false,
-  "git.blame.editorDecoration.enabled": false,
-  "git.blame.statusBarItem.enabled": true,
-
-  /* ============================================================
    * Markdown
    * Editing/formatting: Markdown All in One (yzhang).
    * Preview + PDF/LaTeX export: Markdown Preview Enhanced.
    * ============================================================ */
   "[markdown]": {
     "editor.rulers": [120],
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
   },
-  // Markdown All in One
-  "markdown.extension.toc.orderedList": true,
-  "markdown.extension.theming.decoration.renderLink": true,
-  "markdown.extension.theming.decoration.renderParagraph": true,
-  "markdown.extension.theming.decoration.renderTrailingSpace": true,
-  // Markdown Preview Enhanced
-  "markdown-preview-enhanced.previewTheme": "vscode.css",
-  "markdown-preview-enhanced.revealjsTheme": "vscode.css",
-  "markdown-preview-enhanced.printBackground": true,
-  "markdown-preview-enhanced.latexEngine": "pdflatex",
-  "markdown-preview-enhanced.chromePath": "/usr/bin/chromium",
 
   /* ============================================================
    * JSON
@@ -204,8 +192,10 @@
   "python.venvPath": "/home/skurtz/.micromamba/envs",
 
   /* ============================================================
-   * C / C++ (Pure Clangd - No Microsoft Bloat)
+   * C / C++
    * ============================================================ */
+  "cmake.automaticReconfigure": false,
+
   "clangd.arguments": [
     "--background-index",
     "--clang-tidy",
@@ -215,9 +205,11 @@
   ],
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true,
   },
   "[c]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true,
   },
 
   /* ============================================================
@@ -261,5 +253,14 @@
       "sshPassword": "",
     },
   ],
-  "mesonbuild.downloadLanguageServer": true,
+
+  "hexeditor.columnWidth": 32,
+  "hexeditor.showDecodedText": true,
+  "hexeditor.defaultEndianness": "little",
+  "hexeditor.inspectorType": "aside",
+  "workbench.editorAssociations": {
+    "{hexdiff}:/**/*.*": "hexEditor.hexedit",
+    "*.a": "hexEditor.hexedit",
+  },
+  "tn3270.hosts": [],
 }

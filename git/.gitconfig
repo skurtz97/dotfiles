@@ -6,3 +6,5 @@
 	insteadOf = https://github.com/
 [credential "https://gitlab.com"]
 	helper = /usr/libexec/git-core/git-credential-libsecret
+[init]
+	defaultBranch = main
