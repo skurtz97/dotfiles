@@ -1,0 +1,15 @@
+# Local llama.cpp server (llm use ... selects the model)
+model: openai/qwen3.8-27b
+openai-api-base: http://127.0.0.1:8080/v1
+openai-api-key: none
+
+# Compile-fix loop: lint after every edit; test-cmd is set per project
+auto-lint: true
+lint-cmd:
+  - "c: clang -std=c11 -Wall -Wextra -fsyntax-only"
+
+# Quiet, git-friendly defaults
+auto-commits: false
+show-model-warnings: false
+check-update: false
+analytics-disable: true
