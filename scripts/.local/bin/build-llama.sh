@@ -2,8 +2,13 @@
 # shellcheck shell=bash
 #
 # build-llama.sh - clone/update llama.cpp, build with HIP/ROCm for gfx1201
-# (RX 9070 XT), and install llama-server, llama-cli, llama-bench into
+# (RX 9070 XT) and install llama-server, llama-cli, llama-bench into
 # ~/.local/bin as static binaries.
+#
+# Compilers: system Clang for host (CC/CXX) and device (HIPCXX) code by
+# default; set HIPCXX=/usr/lib64/rocm/llvm/bin/clang to use ROCm's Clang for
+# the HIP kernels instead. ROCm headers/libs are located in this order:
+# $ROCM_PATH, /opt/rocm, then Fedora's packaged ROCm under /usr.
 
 set -euo pipefail
 
@@ -11,9 +16,16 @@ readonly REPO_URL="https://github.com/ggml-org/llama.cpp"
 readonly SRC_DIR="${HOME}/src/llama.cpp"
 readonly BUILD_DIR="${SRC_DIR}/build"
 readonly PREFIX="${HOME}/.local"
-readonly ROCM="${ROCM_PATH:-/opt/rocm}"
 readonly GFX="gfx1201"
 readonly TARGETS=(llama-server llama-cli llama-bench)
+
+# Set by find_rocm
+HIP_ROOT=""
+HIP_CLANG=""
+DEVICE_LIBS=""
+ROCWMMA_INC=""
+HOST_CC=""
+HOST_CXX=""
 
 VERBOSE=0
 CLEAN=0
@@ -64,12 +76,48 @@ parse_args() {
     esac
 }
 
+find_rocm() {
+    local root
+    for root in "${ROCM_PATH:-}" /opt/rocm; do
+        [[ -n "${root}" && -d "${root}/include/hip" ]] || continue
+        HIP_ROOT="${root}"
+        break
+    done
+    if [[ -z "${HIP_ROOT}" && -d /usr/include/hip ]]; then
+        HIP_ROOT=/usr
+    fi
+    [[ -n "${HIP_ROOT}" ]] || die "ROCm/HIP headers not found (set ROCM_PATH)"
+    ROCWMMA_INC="${HIP_ROOT}/include/rocwmma"
+
+    # ocml.bc etc.; location differs between AMD's and Fedora's layouts
+    local bc
+    bc="$(find "${HIP_ROOT}/amdgcn" "${HIP_ROOT}/lib64/rocm" \
+        "${HIP_ROOT}/lib/llvm" -name ocml.bc -print -quit 2>/dev/null || true)"
+    [[ -n "${bc}" ]] \
+        || die "ROCm device libraries (ocml.bc) not found under ${HIP_ROOT}"
+    DEVICE_LIBS="${bc%/*}"
+
+    HOST_CC="${CC:-clang}"
+    HOST_CXX="${CXX:-clang++}"
+    HIP_CLANG="${HIPCXX:-${HOST_CC}}"
+    local c
+    for c in "${HOST_CC}" "${HOST_CXX}" "${HIP_CLANG}"; do
+        command -v "${c}" >/dev/null 2>&1 || die "compiler not found: ${c}"
+    done
+
+    vlog "HIP root:    ${HIP_ROOT}"
+    vlog "device libs: ${DEVICE_LIBS}"
+    vlog "host CC:     $("${HOST_CC}" --version | head -n 1)"
+    vlog "host CXX:    $("${HOST_CXX}" --version | head -n 1)"
+    vlog "HIP clang:   $("${HIP_CLANG}" --version | head -n 1)"
+}
+
 check_prereqs() {
     local cmd
     for cmd in git cmake ninja; do
         command -v "${cmd}" >/dev/null 2>&1 || die "missing: ${cmd}"
     done
-    [[ -x "${ROCM}/llvm/bin/clang" ]] || die "ROCm clang not found at ${ROCM}/llvm/bin/clang"
+    find_rocm
 }
 
 fetch_source() {
@@ -86,7 +134,7 @@ configure() {
     local fattn=OFF
     case "${FATTN}" in
         on)   fattn=ON ;;
-        auto) [[ -d "${ROCM}/include/rocwmma" ]] && fattn=ON ;;
+        auto) [[ -d "${ROCWMMA_INC}" ]] && fattn=ON ;;
     esac
     vlog "rocWMMA flash attention: ${fattn}"
 
@@ -95,9 +143,15 @@ configure() {
         rm -rf -- "${BUILD_DIR}"
     fi
 
-    HIPCXX="${ROCM}/llvm/bin/clang" HIP_PATH="${ROCM}" \
+    local hip_flags="--rocm-path=${HIP_ROOT}"
+    hip_flags+=" --rocm-device-lib-path=${DEVICE_LIBS}"
+
+    HIPCXX="${HIP_CLANG}" HIP_PATH="${HIP_ROOT}" \
     run cmake -S "${SRC_DIR}" -B "${BUILD_DIR}" -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_C_COMPILER="${HOST_CC}" \
+        -DCMAKE_CXX_COMPILER="${HOST_CXX}" \
+        -DCMAKE_HIP_FLAGS="${hip_flags}" \
         -DGGML_HIP=ON \
         -DGPU_TARGETS="${GFX}" \
         -DGGML_HIP_ROCWMMA_FATTN="${fattn}" \
