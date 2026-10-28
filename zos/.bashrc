@@ -22,7 +22,8 @@ if command -v git >/dev/null 2>&1; then
         "$(git --exec-path 2>/dev/null)/../../share/git-core/contrib/completion/git-prompt.sh" \
         /usr/local/zopen/usr/local/zopen/git/git/share/git-core/contrib/completion/git-prompt.sh; do
         if [ -r "$_f" ]; then
-            # shellcheck source=/dev/null
+            # __git_ps1 must run at prompt time, hence the single quotes
+            # shellcheck source=/dev/null disable=SC2016
             . "$_f" && _git_prompt='$(__git_ps1 " (%s)")'
             break
         fi
