@@ -8,9 +8,12 @@ if command -v vim >/dev/null 2>&1; then
     alias vi='vim'
 fi
 
-# --- Prompt: user@host:dir (git status)$, as on the workstation ---
+# Read by git-prompt.sh's __git_ps1
+# shellcheck disable=SC2034
 GIT_PS1_SHOWDIRTYSTATE=1
+# shellcheck disable=SC2034
 GIT_PS1_SHOWUNTRACKEDFILES=1
+# shellcheck disable=SC2034
 GIT_PS1_SHOWUPSTREAM=auto
 
 _git_prompt=""
