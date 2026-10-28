@@ -3,3 +3,9 @@ x3270.model: 3279-2-E
 x3270.oversize: 160x62
 x3270.hostsFile: /home/skurtz/.x3270hosts
 x3270.emulatorFont: 3270-20
+
+x3270.keymap: skurtz
+x3270.keymap.skurtz: #override \n\
+	Ctrl<Key>Delete: EraseEOF()\n\
+	Ctrl<Key>q: Home()\n\
+	Ctrl<Key>i: ToggleInsert()

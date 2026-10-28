@@ -2,3 +2,8 @@
 c3270.model: 3279-2-E
 c3270.oversize: auto
 c3270.hostsFile: /home/skurtz/.x3270hosts
+
+c3270.keymap: skurtz
+c3270.keymap.skurtz: \
+	Ctrl<Key>q: Home()
+    Ctrl<Key>i: ToggleInsert()

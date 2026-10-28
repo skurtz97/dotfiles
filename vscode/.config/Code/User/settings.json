@@ -276,4 +276,10 @@
       "extendedColor": true,
     },
   ],
+
+  "tn3270.keymap": {
+    "ctrl+delete": "nav:eraseeof",
+    "ctrl+q": "nav:home",
+    "ctrl+i": "local:insert",
+  },
 }
