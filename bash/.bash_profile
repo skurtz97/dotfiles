@@ -38,7 +38,13 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 export SUDO_EDITOR="nvim"
 
-# Load interactive settings (aliases, completion, vendor hooks)
+# Default toolchain: LLVM (/usr/bin/cc stays GCC for rpm/akmods)
+export CC="clang"
+export CXX="clang++"
+export LD="ld.lld"
+export LDFLAGS="-fuse-ld=lld"
+
+# Load interactive settings (aliases, completion, vendor hooks
 # shellcheck source-path=SCRIPTDIR
 # shellcheck source=.bashrc
 # shellcheck disable=SC1091
