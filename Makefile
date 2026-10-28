@@ -6,7 +6,18 @@
 TARGET   := $(HOME)
 
 # List of all dotfile packages to manage with Stow
-PACKAGES := bash git nvim systemd vscode vscode-meta xdg shellcheck nautilus aider
+PACKAGES := \
+	bash \
+	git \
+	nvim \
+	systemd \
+	vscode \
+	vscode-meta \
+	xdg \
+	shellcheck \
+	nautilus \
+	aider \
+	x3270
 
 # Stow base arguments (-v: verbose, --target: destination)
 STOW_CMD := stow -v --target="$(TARGET)"
