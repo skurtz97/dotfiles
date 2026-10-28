@@ -1,0 +1,4 @@
+! c3270 resources (stowed from ~/src/dotfiles/x3270)
+c3270.model: 3279-2-E
+c3270.oversize: auto
+c3270.hostsFile: /home/skurtz/.x3270hosts

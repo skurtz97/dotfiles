@@ -262,5 +262,18 @@
     "{hexdiff}:/**/*.*": "hexEditor.hexedit",
     "*.a": "hexEditor.hexedit",
   },
-  "tn3270.hosts": [],
+  "tn3270.hosts": [
+    {
+      "label": "CBT",
+      "host": "zOS_PAGENT_CERT",
+      "port": 992,
+      "secure": true,
+      "verifyCert": true,
+      "tn3270e": true,
+      "luName": "",
+      "codePage": "037",
+      "psSize": "62x160",
+      "extendedColor": true,
+    },
+  ],
 }
