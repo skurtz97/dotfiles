@@ -36,3 +36,15 @@ unset _git_prompt
 
 alias ll='ls -l'
 alias la='ls -la'
+# z/OS /bin/clear and /bin/tput only know z/OS terminfo; use zopen's
+# ncurses tools, which read ~/.terminfo (Ghostty's entry lives there)
+alias clear='gclear'
+if ! gtput -T "$TERM" clear >/dev/null 2>&1; then
+    for _t in xterm-256color xterm vt100; do
+        if gtput -T "$_t" clear >/dev/null 2>&1; then
+            export TERM="$_t"
+            break
+        fi
+    done
+    unset _t
+fi
