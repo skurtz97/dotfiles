@@ -17,6 +17,7 @@ PACKAGES := \
 	shellcheck \
 	nautilus \
 	aider \
+	ssh \
 	x3270
 
 # Stow base arguments (-v: verbose, --target: destination)
