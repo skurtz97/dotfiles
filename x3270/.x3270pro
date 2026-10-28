@@ -1,5 +1,5 @@
 ! x3270 resources (stowed from ~/src/dotfiles/x3270)
 x3270.model: 3279-2-E
-x3270.oversize: 62x160
+x3270.oversize: 160x62
 x3270.hostsFile: /home/skurtz/.x3270hosts
 x3270.emulatorFont: 3270-20
