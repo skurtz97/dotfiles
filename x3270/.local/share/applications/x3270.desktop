@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=x3270
+GenericName=IBM 3270 Terminal Emulator
+Comment=Connect to IBM mainframes over TN3270
+Exec=x3270
+Icon=x3270
+Terminal=false
+Categories=Network;RemoteAccess;System;TerminalEmulator;
+Keywords=3270;tn3270;mainframe;zos;tso;ispf;
+StartupWMClass=X3270
