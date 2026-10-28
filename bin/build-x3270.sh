@@ -182,7 +182,9 @@ main() {
     install_suite
     install_icons
     check_fonts
-    log "installed x3270 suite to ${PREFIX}"
+    if (( ! DRY_RUN )); then
+        log "installed x3270 suite to ${PREFIX}"
+    fi
 }
 
 main "$@"
