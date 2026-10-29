@@ -23,7 +23,7 @@ PACKAGES := \
 	x3270
 
 # Stow base arguments (-v: verbose, --target: destination)
-STOW_CMD := stow -v --target="$(TARGET)"
+STOW_CMD := stow -v --no-folding --target="$(TARGET)"
 
 .PHONY: all stow restow adopt delete clean-links help
 
