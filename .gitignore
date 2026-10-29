@@ -1,2 +1,4 @@
 .x3270hosts
 ssh/.ssh/config.d/
+# Secrets: stowed, never committed
+opencode/.config/opencode/secrets/
