@@ -1,9 +1,9 @@
 # .bashrc
 # shellcheck shell=bash
- # shellcheck disable=SC2034
 
 # =============================================================================
-# ~/.bashrc — interactive shell config (PATH/env setup lives in .bash_profile)
+# ~/.bashrc — env/PATH for every shell, then interactive config.
+# .bash_profile only sources this file.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -15,10 +15,34 @@ if [ -f /etc/bashrc ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Stop here for non-interactive shells. Keep this guard immediately below the
-# system-wide source above — everything after it forks processes or defines
-# interactive-only conveniences, and shouldn't run for non-interactive
-# invocations of this file.
+# Environment (all shells, incl. non-interactive)
+# -----------------------------------------------------------------------------
+: "${XDG_DATA_HOME:=$HOME/.local/share}"
+: "${XDG_CACHE_HOME:=$HOME/.cache}"
+
+export GOPATH="$XDG_DATA_HOME/go"          # module cache / sources
+export GOBIN="$HOME/.local/bin"            # `go install` targets
+export BUN_INSTALL="$XDG_DATA_HOME/bun"
+export NPM_CONFIG_PREFIX="$HOME/.local"    # `npm i -g` -> ~/.local/{bin,lib}
+export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
+
+# Prepended in order, so the LAST entry ends up first in PATH
+for _dir in "$BUN_INSTALL/bin" "$HOME/.local/bin" "$HOME/bin"; do
+    case ":${PATH}:" in
+        *":$_dir:"*) ;;
+        *) PATH="$_dir${PATH:+:$PATH}" ;;
+    esac
+done
+unset _dir
+export PATH
+
+export EDITOR="nvim" VISUAL="nvim" SUDO_EDITOR="nvim"
+
+# Default toolchain: LLVM (/usr/bin/cc stays GCC for rpm/akmods)
+export CC="clang" CXX="clang++" LD="ld.lld" LDFLAGS="-fuse-ld=lld"
+
+# -----------------------------------------------------------------------------
+# Non-interactive shells stop here
 # -----------------------------------------------------------------------------
 [[ $- == *i* ]] || return
 
@@ -26,11 +50,11 @@ fi
 # Tool init: micromamba
 # Block below (>>> / <<< markers) is written by `micromamba shell init`.
 # Leave the sentinel comments and body verbatim so a future re-run of that
-# command can find and replace it — only its position in the file changed.
+# command can find and replace it.
 # -----------------------------------------------------------------------------
 # >>> mamba initialize >>>
 export MAMBA_EXE='/home/skurtz/.local/bin/micromamba'
-export MAMBA_ROOT_PREFIX='/home/skurtz/.micromamba'
+export MAMBA_ROOT_PREFIX='/home/skurtz/.local/share/micromamba'
 if __mamba_setup="$("$MAMBA_EXE" shell hook --shell bash \
     --root-prefix "$MAMBA_ROOT_PREFIX" 2>/dev/null)"; then
     eval "$__mamba_setup"
@@ -65,11 +89,8 @@ alias mamba='micromamba'
 
 # eza (modern ls). Interactive-only, so /usr/bin/ls and /usr/bin/tree
 # stay untouched for scripts. Use \ls to bypass an alias on demand.
-alias ls='eza --group-directories-first'
-alias ll='eza -l --git --group-directories-first'
-alias la='eza -la --git --group-directories-first'
-alias lt='eza --tree --level=2 --group-directories-first'
-alias tree='eza --tree --group-directories-first --git-ignore'
+alias ls='eza --icons --group-directories-first'
+alias tree='eza --tree --icons --group-directories-first --git-ignore'
 
 # -----------------------------------------------------------------------------
 # Completion: make complete-alias work through the aliases above
@@ -78,35 +99,14 @@ if [ -f ~/.complete_alias ]; then
     # shellcheck source=/dev/null
     . ~/.complete_alias
     complete -F _complete_alias \
-        vi vim vscode conda mamba systemctlu sctl sctlu \
-        ls ll la lt tree
-fi
-
-# -----------------------------------------------------------------------------
-# Prompt: git branch/status via git-core's contrib helper
-# Provided by the `git-core` package on Fedora.
-# -----------------------------------------------------------------------------
-if [ -f /usr/share/git-core/contrib/completion/git-prompt.sh ]; then
-    # shellcheck source=/dev/null
-    . /usr/share/git-core/contrib/completion/git-prompt.sh
-
-    GIT_PS1_SHOWDIRTYSTATE=1      # * staged, + unstaged
-    GIT_PS1_SHOWSTASHSTATE=1      # $ if stashed
-    GIT_PS1_SHOWUNTRACKEDFILES=1  # % if untracked
-    GIT_PS1_SHOWUPSTREAM="auto"   # </>/= vs upstream
-    GIT_PS1_SHOWCOLORHINTS=1      # requires PROMPT_COMMAND form
-
-    # \u@\h  \w  (branch)
-    PROMPT_COMMAND='__git_ps1 "\[\e[32m\]\u@\h\[\e[0m\]:\[\e[34m\]\w\[\e[0m\]" "\\\$ "'
-else
-    PS1='\[\e[32m\]\u@\h\[\e[0m\]:\[\e[34m\]\w\[\e[0m\]\$ '
+        vi vim vscode conda mamba \
+        ls tree
 fi
 
 # -----------------------------------------------------------------------------
 # PATH de-duplication
 # Safety net for anything the tool-init blocks above prepend without checking
-# for duplicates first (mamba's hook and pnpm's case-guard each dedupe their
-# own entry, but this catches everything else, e.g. future eval'd hooks).
+# for duplicates first.
 # -----------------------------------------------------------------------------
 if [ -n "$PATH" ]; then
     _new_path=""
@@ -121,5 +121,3 @@ if [ -n "$PATH" ]; then
     export PATH="$_new_path"
     unset _new_path _path_dirs _dir
 fi
-# opencode
-export PATH=/home/skurtz/.opencode/bin:$PATH
