@@ -121,3 +121,5 @@ if [ -n "$PATH" ]; then
     export PATH="$_new_path"
     unset _new_path _path_dirs _dir
 fi
+# opencode
+export PATH=/home/skurtz/.opencode/bin:$PATH

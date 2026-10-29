@@ -60,6 +60,8 @@
   /* ============================================================
    * Claude Code
    * ============================================================ */
+  "claudeCode.useTerminal": true,
+  "claudeCode.usePythonEnvironment": true,
 
   /* ============================================================
    * Git
@@ -138,8 +140,12 @@
    * ============================================================ */
   "[markdown]": {
     "editor.rulers": [120],
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+    "editor.formatOnSave": true,
+    "diffEditor.ignoreTrimWhitespace": true,
   },
-  "markdown-preview-enhanced.previewTheme": "github-light.css",
+  "markdown-preview-enhanced.previewTheme": "one-light.css",
+  "markdown.extension.completion.enabled": true,
 
   /* ============================================================
    * JSON
@@ -282,4 +288,6 @@
     "ctrl+q": "nav:home",
     "ctrl+i": "local:insert",
   },
+  "markdown-preview-enhanced.revealjsTheme": "simple.css",
+  "markdown-preview-enhanced.enablePreviewZenMode": false,
 }
