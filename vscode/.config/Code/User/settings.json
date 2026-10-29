@@ -139,7 +139,7 @@
   "[markdown]": {
     "editor.rulers": [120],
   },
-  "markdown-preview-enhanced.previewTheme": "atom-dark.css",
+  "markdown-preview-enhanced.previewTheme": "github-light.css",
 
   /* ============================================================
    * JSON
