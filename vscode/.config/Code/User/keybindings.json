@@ -2,14 +2,31 @@
 [
   {
     "key": "ctrl+shift+0",
-    "command": "ollama-autocoder.autocomplete",
+    "command": "ollama-autocoder.autocomplete"
   },
   {
     "key": "ctrl+u",
-    "command": "deleteAllLeft",
+    "command": "deleteAllLeft"
+  },
+  // OpenCode: own keys; Ctrl+Esc stays with Claude Code
+  {
+    "key": "ctrl+alt+o",
+    "command": "opencode.openTerminal"
   },
   {
-    "key": "ctrl+q",
-    "command": "-workbench.action.quit",
+    "key": "ctrl+alt+shift+o",
+    "command": "opencode.openNewTerminal"
   },
+  {
+    "key": "ctrl+alt+k",
+    "command": "opencode.addFilepathToTerminal"
+  },
+  {
+    "key": "ctrl+escape",
+    "command": "-opencode.openTerminal"
+  },
+  {
+    "key": "ctrl+shift+escape",
+    "command": "-opencode.openNewTerminal"
+  }
 ]
