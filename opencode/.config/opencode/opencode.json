@@ -1,3 +1,12 @@
 {
-  "$schema": "https://opencode.ai/config.json"
+  "$schema": "https://opencode.ai/config.json",
+  "providers": {
+    "fireworks-ai": {
+      "models": {
+        "glm-latest": { "name": "GLM (Latest)" },
+        "auto": { "name": "Nexus Auto" }
+      }
+    }
+  },
+  "model": "fireworks-ai/glm-latest"
 }

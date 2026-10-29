@@ -18,6 +18,8 @@ PACKAGES := \
 	nautilus \
 	aider \
 	ssh \
+	scripts \
+	opencode \
 	x3270
 
 # Stow base arguments (-v: verbose, --target: destination)
