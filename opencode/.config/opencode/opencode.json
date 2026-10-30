@@ -8,5 +8,5 @@
       }
     }
   },
-  "model": "fireworks-ai/glm-latest"
+  "model": "fireworks-ai/deepseek-v4p1-flash-1017-spot"
 }

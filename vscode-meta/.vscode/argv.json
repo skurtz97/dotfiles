@@ -16,11 +16,5 @@
 
   // Unique id used for correlating crash reports sent from this instance.
   // Do not edit this value.
-  "crash-reporter-id": "43963d16-84c3-421d-aeef-a503d44b3c91",
-
-  // ============================================================
-  // Fedora Wayland Native Optimizations
-  // ============================================================
-  "enable-features": "UseOzonePlatform",
-  "ozone-platform": "wayland"
+  "crash-reporter-id": "43963d16-84c3-421d-aeef-a503d44b3c91"
 }

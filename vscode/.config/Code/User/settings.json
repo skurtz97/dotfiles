@@ -49,7 +49,7 @@
   "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.fontWeight": "bold",
-  "terminal.integrated.gpuAcceleration": "auto",
+  "terminal.integrated.gpuAcceleration": "off",
 
   /* ============================================================
    * Explorer
@@ -58,18 +58,18 @@
   "explorer.confirmDragAndDrop": false,
 
   /* ============================================================
-   * Claude Code
-   * ============================================================ */
-  "claudeCode.useTerminal": true,
-  "claudeCode.usePythonEnvironment": true,
-
-  /* ============================================================
    * Git
    * Built-in blame replaces the Git Blame extension.
    * ============================================================ */
   "git.confirmSync": false,
   "git.blame.editorDecoration.enabled": false,
   "git.blame.statusBarItem.enabled": true,
+
+  /* ============================================================
+   * Claude Code
+   * ============================================================ */
+  "claudeCode.useTerminal": true,
+  "claudeCode.usePythonEnvironment": true,
 
   /* ============================================================
    * Performance: File Watcher & Search Limits
