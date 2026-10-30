@@ -30,7 +30,7 @@
   /* ============================================================
    * Editor
    * ============================================================ */
-  "editor.fontFamily": "CodeNewRoman Nerd Font Mono",
+  "editor.fontFamily": "0xProto Nerd Font Mono",
   "editor.fontSize": 15,
   "editor.fontWeight": "bold",
   "editor.fontLigatures": true,
@@ -46,7 +46,7 @@
   /* ============================================================
    * Terminal
    * ============================================================ */
-  "terminal.integrated.fontFamily": "Hack Nerd Font Mono",
+  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font",
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.fontWeight": "bold",
   "terminal.integrated.gpuAcceleration": "off",
