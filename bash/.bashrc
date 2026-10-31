@@ -10,8 +10,8 @@
 # System-wide definitions
 # -----------------------------------------------------------------------------
 if [ -f /etc/bashrc ]; then
-    # shellcheck source=/dev/null
-    . /etc/bashrc
+  # shellcheck source=/dev/null
+  . /etc/bashrc
 fi
 
 # -----------------------------------------------------------------------------
@@ -20,18 +20,18 @@ fi
 : "${XDG_DATA_HOME:=$HOME/.local/share}"
 : "${XDG_CACHE_HOME:=$HOME/.cache}"
 
-export GOPATH="$XDG_DATA_HOME/go"          # module cache / sources
-export GOBIN="$HOME/.local/bin"            # `go install` targets
+export GOPATH="$XDG_DATA_HOME/go" # module cache / sources
+export GOBIN="$HOME/.local/bin"   # `go install` targets
 export BUN_INSTALL="$XDG_DATA_HOME/bun"
-export NPM_CONFIG_PREFIX="$HOME/.local"    # `npm i -g` -> ~/.local/{bin,lib}
+export NPM_CONFIG_PREFIX="$HOME/.local" # `npm i -g` -> ~/.local/{bin,lib}
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 
 # Prepended in order, so the LAST entry ends up first in PATH
 for _dir in "$BUN_INSTALL/bin" "$HOME/.local/bin" "$HOME/bin"; do
-    case ":${PATH}:" in
-        *":$_dir:"*) ;;
-        *) PATH="$_dir${PATH:+:$PATH}" ;;
-    esac
+  case ":${PATH}:" in
+  *":$_dir:"*) ;;
+  *) PATH="$_dir${PATH:+:$PATH}" ;;
+  esac
 done
 unset _dir
 export PATH
@@ -56,11 +56,11 @@ export CC="clang" CXX="clang++" LD="ld.lld" LDFLAGS="-fuse-ld=lld"
 export MAMBA_EXE='/home/skurtz/.local/bin/micromamba'
 export MAMBA_ROOT_PREFIX='/home/skurtz/.local/share/micromamba'
 if __mamba_setup="$("$MAMBA_EXE" shell hook --shell bash \
-    --root-prefix "$MAMBA_ROOT_PREFIX" 2>/dev/null)"; then
-    eval "$__mamba_setup"
+  --root-prefix "$MAMBA_ROOT_PREFIX" 2>/dev/null)"; then
+  eval "$__mamba_setup"
 else
-    # shellcheck disable=SC2139
-    alias micromamba="$MAMBA_EXE"
+  # shellcheck disable=SC2139
+  alias micromamba="$MAMBA_EXE"
 fi
 unset __mamba_setup
 # <<< mamba initialize <
@@ -73,8 +73,8 @@ unset __mamba_setup
 # pnpm
 export PNPM_HOME="/home/skurtz/.local/share/pnpm"
 case ":$PATH:" in
-    *":$PNPM_HOME:"*) ;;
-    *) export PATH="$PNPM_HOME:$PATH" ;;
+*":$PNPM_HOME:"*) ;;
+*) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
 
@@ -96,11 +96,11 @@ alias tree='eza --tree --icons --group-directories-first --git-ignore'
 # Completion: make complete-alias work through the aliases above
 # -----------------------------------------------------------------------------
 if [ -f ~/.complete_alias ]; then
-    # shellcheck source=/dev/null
-    . ~/.complete_alias
-    complete -F _complete_alias \
-        vi vim vscode conda mamba \
-        ls tree
+  # shellcheck source=/dev/null
+  . ~/.complete_alias
+  complete -F _complete_alias \
+    vi vim vscode conda mamba \
+    ls tree
 fi
 
 # -----------------------------------------------------------------------------
@@ -109,15 +109,15 @@ fi
 # for duplicates first.
 # -----------------------------------------------------------------------------
 if [ -n "$PATH" ]; then
-    _new_path=""
-    IFS=':' read -ra _path_dirs <<< "$PATH"
-    for _dir in "${_path_dirs[@]}"; do
-        [ -z "$_dir" ] && continue
-        case ":$_new_path:" in
-            *":$_dir:"*) ;;
-            *) _new_path="${_new_path:+$_new_path:}$_dir" ;;
-        esac
-    done
-    export PATH="$_new_path"
-    unset _new_path _path_dirs _dir
+  _new_path=""
+  IFS=':' read -ra _path_dirs <<<"$PATH"
+  for _dir in "${_path_dirs[@]}"; do
+    [ -z "$_dir" ] && continue
+    case ":$_new_path:" in
+    *":$_dir:"*) ;;
+    *) _new_path="${_new_path:+$_new_path:}$_dir" ;;
+    esac
+  done
+  export PATH="$_new_path"
+  unset _new_path _path_dirs _dir
 fi
