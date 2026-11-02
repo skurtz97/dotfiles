@@ -2,3 +2,8 @@
 ssh/.ssh/config.d/
 # Secrets: stowed, never committed
 opencode/.config/opencode/secrets/
+
+# goose runtime/secrets
+goose/.config/goose/secrets.yaml
+goose/.config/goose/permission.yaml
+goose/.config/goose/permissions/

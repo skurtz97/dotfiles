@@ -1,0 +1,17 @@
+{
+  "name": "custom_llamacpp",
+  "engine": "openai",
+  "display_name": "llama.cpp (local ROCm)",
+  "description": "Local llama-server router",
+  "api_key_env": "LLAMACPP_API_KEY",
+  "base_url": "http://127.0.0.1:8080/v1/chat/completions",
+  "requires_auth": false,
+  "models": [
+    { "name": "Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-Q4_K_M", "context_limit": 131072 },
+    { "name": "Qwen3.8-27B-UD-IQ4_XS", "context_limit": 65536 },
+    { "name": "Qwen3.8-27B-UD-Q3_K_XL", "context_limit": 65536 },
+    { "name": "Qwen3.8-27B-UD-IQ3_S", "context_limit": 65536 },
+    { "name": "Qwen3.8-27B-Cold-Fusion-GAIN-V1.1-NM-DAU-NEO-MAX-NEO-IQ3_M", "context_limit": 65536 },
+    { "name": "Qwen3.6-27B-Fable-Fus-711-UnHeretic-NM-DAU-NEO-MAX-NEO-IQ3_M", "context_limit": 65536 }
+  ]
+}

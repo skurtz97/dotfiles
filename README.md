@@ -8,6 +8,7 @@ This repository houses my personal workstation configuration for Fedora 44. It i
 .
 ├── bash/        # Shell configuration (.bashrc, .bash_profile)
 ├── nvim/        # Neovim configuration (~/.config/nvim/)
+├── goose/       # Goose agent config + custom providers (~/.config/goose/)
 # Scripts live in a separate repo: github.com/skurtz97/scripts
 ├── systemd/     # User-level systemd services
 ├── vscode/      # VS Code settings and keybindings
@@ -18,7 +19,7 @@ This repository houses my personal workstation configuration for Fedora 44. It i
 
 ## Quick Start
 
-To setup on a new machine:
+To setup on a new machine
 
 1. Clone the repository:
 
@@ -36,13 +37,13 @@ To setup on a new machine:
 
 ## Makefile Usage
 
-| Command | Action |
-| ------- | ------ |
-| `make` | **Default**. Runs `restow`. Use this after changing any config file. |
-| `make restow` | Refreshes and relinks packages. |
-| `make adopt` | Imports an existing local file into the repo and links it (essential when adding existing condfigs.) |
-| `make delete` | Removes all symlinks managed by this repo |
-| `make help` | Displays this command list |
+| Command       | Action                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------- |
+| `make`        | **Default**. Runs `restow`. Use this after changing any config file.                                 |
+| `make restow` | Refreshes and relinks packages.                                                                      |
+| `make adopt`  | Imports an existing local file into the repo and links it (essential when adding existing condfigs.) |
+| `make delete` | Removes all symlinks managed by this repo                                                            |
+| `make help`   | Displays this command list                                                                           |
 
 ...
 

@@ -1,0 +1,63 @@
+{
+  "name": "custom_deepinfra",
+  "engine": "openai",
+  "display_name": "DeepInfra",
+  "description": "Custom DeepInfra provider",
+  "api_key_env": "",
+  "base_url": "https://api.deepinfra.com/v1/openai/chat/completions",
+  "models": [
+    {
+      "name": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "context_limit": null,
+      "input_token_cost": null,
+      "output_token_cost": null,
+      "currency": null,
+      "supports_cache_control": null,
+      "reasoning": false
+    },
+    {
+      "name": "Qwen/Qwen3.8-Flash",
+      "context_limit": null,
+      "input_token_cost": null,
+      "output_token_cost": null,
+      "currency": null,
+      "supports_cache_control": null,
+      "reasoning": false
+    },
+    {
+      "name": "zai-org/GLM-5.3-Flash",
+      "context_limit": null,
+      "input_token_cost": null,
+      "output_token_cost": null,
+      "currency": null,
+      "supports_cache_control": null,
+      "reasoning": false
+    },
+    {
+      "name": "google/gemma-4-31B-it-turbo",
+      "context_limit": null,
+      "input_token_cost": null,
+      "output_token_cost": null,
+      "currency": null,
+      "supports_cache_control": null,
+      "reasoning": false
+    }
+  ],
+  "headers": null,
+  "session_id_header_override": null,
+  "timeout_seconds": null,
+  "supports_streaming": true,
+  "requires_auth": false,
+  "catalog_provider_id": null,
+  "base_path": null,
+  "env_vars": null,
+  "auth": null,
+  "dynamic_models": null,
+  "skip_canonical_filtering": false,
+  "model_doc_link": null,
+  "setup_steps": [],
+  "toolshim": false,
+  "preserves_thinking": true,
+  "emit_clear_thinking": false,
+  "setup": null
+}
