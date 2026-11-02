@@ -16,9 +16,8 @@ PACKAGES := \
 	xdg \
 	shellcheck \
 	nautilus \
-	aider \
 	ssh \
-	opencode \
+	goose \
 	x3270
 
 # Stow base arguments (-v: verbose, --target: destination)
