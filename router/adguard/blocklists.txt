@@ -1,0 +1,3 @@
+# AdGuard Home -> Filters -> DNS blocklists -> Add a custom list
+# HaGeZi encrypted DNS/VPN/proxy bypass (DoH/DoT provider hostnames)
+https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/doh.txt

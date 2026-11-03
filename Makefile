@@ -28,7 +28,8 @@ STOW_CMD := stow -v --no-folding --target="$(TARGET)"
 BIN_DIR  := $(HOME)/.local/bin
 SCRIPTS  := $(wildcard scripts/bin/*)
 
-.PHONY: all stow restow adopt delete link-scripts unlink-scripts clean-links help
+.PHONY: all stow restow adopt delete link-scripts unlink-scripts clean-links \
+	system system-diff help
 
 # Default action when just running `make`
 all: restow
@@ -78,6 +79,27 @@ unlink-scripts:
 	done
 
 # -----------------------------------------------------------------------------
+# System Targets (/etc: copied, not symlinked, so root services and SELinux
+# contexts don't depend on files under $(HOME))
+# -----------------------------------------------------------------------------
+SYSTEM_FILES := $(shell find system -type f 2>/dev/null)
+
+# Install system/<path> to /<path>; point resolv.conf at the resolved stub
+system:
+	@echo "=> Installing system files to /..."
+	@for f in $(SYSTEM_FILES); do \
+		sudo install -Dvm644 "$$f" "/$${f#system/}"; \
+	done
+	@sudo ln -sfv ../run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+	@sudo systemctl restart systemd-resolved
+
+# Show drift between repo and installed system files
+system-diff:
+	@for f in $(SYSTEM_FILES); do \
+		diff -u "/$${f#system/}" "$$f" || true; \
+	done
+
+# -----------------------------------------------------------------------------
 # Maintenance Targets
 # -----------------------------------------------------------------------------
 
@@ -97,3 +119,5 @@ help:
 	@echo "  make link-scripts   - Link scripts/bin/* to $(BIN_DIR), extension stripped"
 	@echo "  make unlink-scripts - Remove those links"
 	@echo "  make clean-links    - Delete dead symlinks in $(TARGET)"
+	@echo "  make system         - Install system/ files to / (sudo)"
+	@echo "  make system-diff    - Diff system/ against installed files"

@@ -1,0 +1,6 @@
+! AdGuard Home -> Filters -> Custom filtering rules (paste as-is)
+! Firefox DoH canary: unmanaged Firefox falls back to system DNS
+||use-application-dns.net^
+! iCloud Private Relay: Apple devices fall back to normal DNS
+||mask.icloud.com^
+||mask-h2.icloud.com^

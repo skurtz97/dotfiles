@@ -114,3 +114,38 @@ shim that chains to it. Verify the output includes
   `sudo grub2-editenv - list` for `menu_auto_hide=1` and unset it.
 - Custom PF2 font (unused, tela ships its own):
   `sudo grub2-mkfont -s 32 -o /boot/grub2/fonts/NAME.pf2 FONT.otf`
+
+## DNS / Ad Blocking
+
+AdGuard Home runs on the Flint 2 (GL-MT6000, fw 4.11, `192.168.8.1`).
+Clients must resolve through it, never directly upstream or over
+encrypted DNS.
+
+### Workstation (`system/`, `make system`)
+
+- `etc/systemd/resolved.conf.d/10-router-dns.conf`: DHCP DNS only, no
+  fallback, no DoT
+- `etc/firefox/policies/policies.json`: DoH off, locked (RPM Firefox;
+  Flatpak Firefox ignores `/etc`)
+- `etc/{chromium,opt/chrome}/policies/managed/dns.json`: DoH off
+- `/etc/resolv.conf` → `../run/systemd/resolve/stub-resolv.conf`
+
+### Router (`router/`)
+
+- `adguard/custom-rules.txt` → Filters → Custom filtering rules
+- `adguard/blocklists.txt` → Filters → DNS blocklists → custom list
+- `flint2/block-dot.sh`: reject LAN→WAN port 853:
+  `ssh root@192.168.8.1 sh -s -- -v < router/flint2/block-dot.sh`
+- UI: Applications → AdGuard Home → enable + *Handle Client Requests*
+
+Apply the workstation config **before** `block-dot.sh`: a client still
+on DoT loses DNS entirely once 853 is blocked.
+
+### Verify
+
+```bash
+resolvectl dns                      # only 192.168.8.1 on enp8s0
+dig doubleclick.net                 # 0.0.0.0 / NXDOMAIN
+dig @8.8.8.8 doubleclick.net        # blocked too -> port 53 hijack works
+timeout 5 openssl s_client -connect 1.1.1.1:853 </dev/null  # fails
+```
