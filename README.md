@@ -149,3 +149,21 @@ dig doubleclick.net                 # 0.0.0.0 / NXDOMAIN
 dig @8.8.8.8 doubleclick.net        # blocked too -> port 53 hijack works
 timeout 5 openssl s_client -connect 1.1.1.1:853 </dev/null  # fails
 ```
+## Cline
+
+Provider seeds in `cline/` (no secrets), installed by `cline-config`
+(`scripts/bin/cline-config.sh`) into `~/.cline/data/settings/`:
+
+- `providers.seed.json`: OpenRouter, Fireworks (built-in providers) and
+  DeepInfra (custom OpenAI-compatible); `keyEnv` names the key variable
+- `models.json`: DeepInfra provider and model metadata
+
+Not stowed: Cline rewrites both files via rename, replacing symlinks.
+Keys come from `OPENROUTER_API_KEY`, `FIREWORKS_API_KEY`,
+`DEEPINFRA_API_KEY` or a no-echo prompt; output is mode 0600 and existing
+providers (e.g. Cline account login) are kept.
+
+```bash
+cline-config -n    # preview, keys redacted
+cline-config       # close VS Code first
+```

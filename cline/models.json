@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "providers": {
+    "deepinfra": {
+      "provider": {
+        "name": "DeepInfra",
+        "baseUrl": "https://api.deepinfra.com/v1/openai",
+        "defaultModelId": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+        "protocol": "openai-chat",
+        "capabilities": ["tools"]
+      },
+      "models": {
+        "deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+          "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+          "name": "DeepSeek V4.1 Flash 1017",
+          "contextWindow": 1000000
+        },
+        "Qwen/Qwen3.8-Flash": {
+          "id": "Qwen/Qwen3.8-Flash",
+          "name": "Qwen3.8 Flash"
+        },
+        "zai-org/GLM-5.3-Flash": {
+          "id": "zai-org/GLM-5.3-Flash",
+          "name": "GLM-5.3 Flash"
+        }
+      }
+    }
+  }
+}
