@@ -4,3 +4,6 @@
 ! iCloud Private Relay: Apple devices fall back to normal DNS
 ||mask.icloud.com^
 ||mask-h2.icloud.com^
+! Allow Tailscale (HaGeZi Encrypted DNS/VPN/TOR/Proxy Bypass blocks it)
+@@||tailscale.com^
+@@||tailscale.io^
