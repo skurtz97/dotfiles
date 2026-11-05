@@ -78,6 +78,12 @@ case ":$PATH:" in
 esac
 # pnpm end
 
+### Load external untracked secrets
+if [ -f ~/.api_keys ]; then
+    # shellcheck disable=SC1090
+    source ~/.api_keys
+fi
+
 # -----------------------------------------------------------------------------
 # Aliases
 # -----------------------------------------------------------------------------
