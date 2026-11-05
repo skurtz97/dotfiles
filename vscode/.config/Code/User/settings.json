@@ -50,6 +50,7 @@
   "terminal.integrated.fontSize": 14,
   "terminal.integrated.fontWeight": "bold",
   "terminal.integrated.gpuAcceleration": "off",
+  "terminal.integrated.shellIntegration.enabled": true,
   /* ============================================================
    * TN3270 Terminal
    * ============================================================ */
@@ -89,10 +90,8 @@
   "git.blame.statusBarItem.enabled": true,
 
   /* ============================================================
-   * Claude Code
+   * Cline
    * ============================================================ */
-  "claudeCode.useTerminal": true,
-  "claudeCode.usePythonEnvironment": true,
 
   /* ============================================================
    * Performance: File Watcher & Search Limits
@@ -167,7 +166,7 @@
     "editor.formatOnSave": true,
     "diffEditor.ignoreTrimWhitespace": true,
   },
-  "markdown-preview-enhanced.previewTheme": "one-light.css",
+  "markdown-preview-enhanced.previewTheme": "vscode.css",
   "markdown.extension.completion.enabled": true,
 
   /* ============================================================
