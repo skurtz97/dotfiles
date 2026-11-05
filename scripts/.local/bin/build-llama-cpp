@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+### shellcheck shell=sh
+### build-llama-cpp: Build llama.cpp engine natively
+set -eu
+
+GREEN='\033[0;32m'
+NC='\033[0m'
+SRC_DIR="$HOME/src/llama.cpp"
+
+printf "%b=== Building llama.cpp Engine ===%b\n" "$GREEN" "$NC"
+
+if [ ! -d "$SRC_DIR" ]; then
+    git clone https://github.com/ggerganov/llama.cpp.git "$SRC_DIR"
+fi
+cd "$SRC_DIR" || exit 1
+git pull
+
+# Purge cache
+rm -rf build dist
+
+# Native compilation for AMD RX 9070 XT (gfx1201) and native CPU
+cmake -B build . \
+    -DGGML_HIP=ON \
+    -DAMDGPU_TARGETS=gfx1201 \
+    -DCMAKE_HIP_ARCHITECTURES=gfx1201 \
+    -DGGML_NATIVE=ON \
+    -DCMAKE_C_FLAGS="-march=native -O3" \
+    -DCMAKE_CXX_FLAGS="-march=native -O3" \
+    -DCMAKE_BUILD_TYPE=Release
+
+CORES=$(nproc 2>/dev/null || printf "1")
+cmake --build build --parallel "$CORES"
+printf "%b[*] llama.cpp engine build complete.%b\n" "$GREEN" "$NC"

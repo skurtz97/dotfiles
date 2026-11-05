@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+### shellcheck shell=sh
+### build-oksh: Native build script for oksh (OpenBSD ksh)
+set -eu
+
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+SRC_DIR="$HOME/src/oksh"
+INSTALL_PREFIX="$HOME/.local"
+
+printf "%b=== Building Oksh ===%b\n" "$GREEN" "$NC"
+
+if [ -d "$SRC_DIR" ]; then rm -rf "$SRC_DIR"; fi
+git clone https://github.com/ibara/oksh.git "$SRC_DIR"
+cd "$SRC_DIR" || exit 1
+
+export CC="clang"
+export CFLAGS="-march=native -O3 -flto"
+./configure --prefix="$INSTALL_PREFIX"
+
+CORES=$(nproc 2>/dev/null || printf "1")
+make -j"$CORES"
+make install
+printf "%b[*] Oksh installed to %s/bin/oksh%b\n" "$GREEN" "$INSTALL_PREFIX" "$NC"

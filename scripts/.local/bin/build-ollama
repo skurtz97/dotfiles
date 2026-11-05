@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+### shellcheck shell=bash
+### build-ollama: Go wrapper build with injected HIP paths
+set -euo pipefail
+
+GREEN='\033[0;32m'
+NC='\033[0m'
+SRC_DIR="$HOME/src/ollama"
+
+echo -e "${GREEN}=== Building Ollama Wrapper ===${NC}"
+
+if [ ! -d "$SRC_DIR" ]; then
+    git clone https://github.com/ollama/ollama.git "$SRC_DIR"
+fi
+cd "$SRC_DIR" || exit 1
+git pull
+
+# Purge cache
+rm -rf build dist
+
+# Force the ROCm/HIP backend tag
+export OLLAMA_BACKENDS="rocm"
+
+# Generate the wrapper code and execute the Go build
+go generate -tags rocm ./...
+go build -tags rocm .
+
+echo -e "${GREEN}[*] Ollama binary build complete.${NC}"
