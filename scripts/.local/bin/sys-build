@@ -1,0 +1,51 @@
+#!/usr/bin/env sh
+### shellcheck shell=sh
+### sys-build: Global automated build wrapper for sysprog tasks
+### Managed via GNU Stow in ~/src/dotfiles/scripts/.local/bin/
+set -eu
+
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+printf "%b=== Initiating Sysprog Build ===%b\n" "$GREEN" "$NC"
+
+# 1. Determine CPU cores for parallel builds
+CORES=$(nproc 2>/dev/null || printf "1")
+
+# 2. Detect project type and build
+if [ -f "CMakeLists.txt" ]; then
+    printf "%b[*] CMake project detected. Applying native optimizations...%b\n" "$YELLOW" "$NC"
+    
+    # Enforce clang and LTO if available
+    if command -v clang >/dev/null 2>&1; then
+        export CC="clang"
+        export CXX="clang++"
+        export CFLAGS="-march=native -O3 -flto"
+        export CXXFLAGS="-march=native -O3 -flto"
+    else
+        export CFLAGS="-march=native -O3"
+        export CXXFLAGS="-march=native -O3"
+    fi
+
+    # Build process
+    cmake -B build . -DCMAKE_BUILD_TYPE=Release
+    cmake --build build --parallel "$CORES"
+    
+    printf "%b[*] CMake build complete.%b\n" "$GREEN" "$NC"
+
+elif [ -f "go.mod" ]; then
+    printf "%b[*] Go project detected. Compiling...%b\n" "$YELLOW" "$NC"
+    go build -v ./...
+    printf "%b[*] Go build complete.%b\n" "$GREEN" "$NC"
+
+elif [ -f "Makefile" ] || [ -f "makefile" ]; then
+    printf "%b[*] Standard Makefile detected. Compiling...%b\n" "$YELLOW" "$NC"
+    make -j"$CORES"
+    printf "%b[*] Make build complete.%b\n" "$GREEN" "$NC"
+
+else
+    printf "%b[!] No recognized build system (CMake, Go, Make) found in current directory.%b\n" "$RED" "$NC"
+    exit 1
+fi

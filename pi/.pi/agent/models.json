@@ -1,8 +1,65 @@
 {
   "$schema": "https://pi.dev/schemas/models.schema.json",
   "providers": {
-    "DeepInfra": {
-      "apiKey": "sk-di-EGzYdlhrdaSUspyEnjpnaHPWzzrDOYW8"
+    "openrouter": {
+      "apiKey": "${OPENROUTER_API_KEY}"
+    },
+    "fireworks": {
+      "apiKey": "${FIREWORKS_API_KEY}"
+    },
+    "opencode": {
+      "apiKey": "${OPENCODE_API_KEY}"
+    },
+    "deepinfra": {
+      "name": "DeepInfra",
+      "baseUrl": "https://api.deepinfra.com/v1/openai",
+      "api": "openai-completions",
+      "apiKey": "${DEEPINFRA_API_KEY}",
+      "models": [
+        {
+          "id": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+          "name": "DeepSeek V4.1 Flash 1017",
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "reasoning": true,
+          "input": ["text", "image"],
+          "cost": {
+            "input": 0.2,
+            "output": 0.6,
+            "cacheRead": 0.006,
+            "cacheWrite": 0
+          }
+        },
+
+        {
+          "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+          "name": "Qwen3 Coder 480B",
+          "contextWindow": 262144,
+          "maxTokens": 65536,
+          "reasoning": false,
+          "input": ["text"],
+          "cost": {
+            "input": 0.3,
+            "output": 1.0,
+            "cacheRead": 0.1,
+            "cacheWrite": 0
+          }
+        }
+      ]
+    },
+    "ollama": {
+      "name": "Ollama (Local RX 9070 XT)",
+      "baseUrl": "http://127.0.0.1:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "ollama",
+      "models": [
+        {
+          "id": "llama3:latest",
+          "name": "Llama 3 (Local ROCm)",
+          "contextWindow": 32768,
+          "maxTokens": 8192
+        }
+      ]
     }
   }
 }

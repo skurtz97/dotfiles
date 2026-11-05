@@ -18,6 +18,9 @@ PACKAGES := \
 	nautilus \
 	ssh \
 	goose \
+	pi \
+	scripts\
+	ghostty\
 	x3270
 
 # Stow base arguments (-v: verbose, --target: destination)
