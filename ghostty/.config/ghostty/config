@@ -23,5 +23,3 @@ cursor-color = #E1E0DD
 cursor-style-blink = true
 
 mouse-scroll-multiplier = 10
-
-clipboard-paste-protection = false
