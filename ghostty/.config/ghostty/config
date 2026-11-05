@@ -1,3 +1,10 @@
+# z/OS over SSH
+term = xterm-256color
+shell-integration-features = no-ssh-env,no-ssh-terminfo
+copy-on-select = clipboard
+scrollback-limit = 100000000
+confirm-close-surface = false
+
 window-height= 40
 window-width= 120
 window-padding-x = 10
