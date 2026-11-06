@@ -274,4 +274,54 @@
 
   "markdown-preview-enhanced.revealjsTheme": "simple.css",
   "markdown-preview-enhanced.enablePreviewZenMode": false,
+  "files.associations": {
+    "**/*.COBOL*{,/*}": "cobol",
+    "**/*.COB*{,/*}": "cobol",
+    "**/*.COBCOPY*{,/*}": "cobol",
+    "**/*.COPYBOOK*{,/*}": "cobol",
+    "**/*.COPY*{,/*}": "cobol",
+    "**/*.PL1*{,/*}": "pl1",
+    "**/*.PLI*{,/*}": "pl1",
+    "**/*.INC*{,/*}": "pl1",
+    "**/*.INCLUDE*{,/*}": "pl1",
+    "**/*.JCL*{,/*}": "jcl",
+    "**/*.CNTL*{,/*}": "jcl",
+    "**/*.PROC*{,/*}": "jcl",
+    "**/*.ASM*{,/*}": "hlasm",
+    "**/*.ASSEMBLE*{,/*}": "hlasm",
+    "**/*.HLASM*{,/*}": "hlasm",
+    "**/*.HLA*{,/*}": "hlasm",
+    "**/*.MACLIB*{,/*}": "hlasm",
+    "**/*.DBD*{,/*}": "hlasm",
+    "**/*.MFS*{,/*}": "hlasm",
+    "**/*.PCB*{,/*}": "hlasm",
+    "**/*.EXEC*{,/*}": "rexx",
+    "**/*.REXX*{,/*}": "rexx",
+    "**/*.REXXINC*{,/*}": "rexx",
+    "*.rex": "rexx",
+    "**/.hlasmplugin/proc_grps.json": "jsonc",
+    "**/.hlasmplugin/pgm_conf.json": "jsonc",
+  },
+  "yaml.schemas": {
+    "file:///home/skurtz/.vscode/extensions/ibm.zopeneditor-6.9.0/resources/zapp-schema-1.12.0.json": [
+      "zapp.yaml",
+    ],
+    "file:///home/skurtz/.vscode/extensions/ibm.zopeneditor-6.9.0/resources/zcodeformat-schema-0.0.1.json": [
+      "zcodeformat.yaml",
+    ],
+  },
+  "json.schemas": [
+    {
+      "fileMatch": ["/zapp.json"],
+      "url": "file:///home/skurtz/.vscode/extensions/ibm.zopeneditor-6.9.0/resources/zapp-schema-1.12.0.json",
+    },
+    {
+      "fileMatch": ["/zcodeformat.json"],
+      "url": "file:///home/skurtz/.vscode/extensions/ibm.zopeneditor-6.9.0/resources/zcodeformat-schema-0.0.1.json",
+    },
+  ],
+  "zowe.featureEnablement.tableView": false,
+
+  "hlasm.enableTypeChecking": true,
+  "hlasm.showControlBlockHints": true,
 }
