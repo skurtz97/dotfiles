@@ -1,5 +1,13 @@
 {
   "$schema": "https://pi.dev/schemas/settings.schema.json",
   "theme": "dark",
-  "defaultProjectTrust": "ask"
+  "defaultProjectTrust": "ask",
+  "lastChangelogVersion": "1.5.0",
+  "defaultProvider": "ollama",
+  "defaultModel": "qwen3.6-35b-uncensored:latest",
+  "enabledModels": [
+    "qwen3.6-35b-uncensored:latest",
+    "qwen3.8-27b-hauhau-aggressive:latest",
+    "qwen3.6-27b-fable-iq3:latest"
+  ]
 }
