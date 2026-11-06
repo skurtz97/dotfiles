@@ -3,17 +3,11 @@ Description=Ollama Service (Native ROCm)
 After=network-online.target
 
 [Service]
-# Point to custom-built binary location
-ExecStart=/home/skurtz/src/ollama/ollama serve
-
-# Essential for RDNA 4 / gfx1201 architecture recognition
-Environment="HSA_OVERRIDE_GFX_VERSION=12.0.1"
+# Installed by `make ollama` (build-ollama)
+ExecStart=%h/.local/bin/ollama serve
 
 # Standard model storage location
-Environment="OLLAMA_MODELS=/home/skurtz/.ollama/models"
-
-# Ensure the system loader finds your ROCm libraries
-Environment="LD_LIBRARY_PATH=/opt/rocm/lib:/opt/rocm/lib64"
+Environment="OLLAMA_MODELS=%h/.ollama/models"
 
 # Required for KV cache quantization; keeps the fused FA kernel on HIP
 Environment="OLLAMA_FLASH_ATTENTION=1"

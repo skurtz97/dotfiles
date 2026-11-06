@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+### shellcheck shell=bash
+### llama-convert: Run llama.cpp's Hugging Face -> GGUF converter.
+###
+### Requires the Python environment prepared by build-llama-cpp.
+### Example:
+###   llama-convert --outfile model.gguf --outtype q8_0 /path/to/hf-model
+set -euo pipefail
+
+SRC_DIR="${LLAMA_SRC:-$HOME/src/llama.cpp}"
+VENV_DIR="${LLAMA_VENV:-$SRC_DIR/.venv}"
+PYTHON="$VENV_DIR/bin/python"
+
+if [ ! -x "$PYTHON" ]; then
+    printf '[!] GGUF conversion environment not found: %s\n' "$VENV_DIR" >&2
+    printf '    Run build-llama-cpp first (or set LLAMA_VENV).\n' >&2
+    exit 1
+fi
+
+if [ ! -f "$SRC_DIR/convert_hf_to_gguf.py" ]; then
+    printf '[!] Converter not found: %s\n' "$SRC_DIR/convert_hf_to_gguf.py" >&2
+    exit 1
+fi
+
+exec "$PYTHON" "$SRC_DIR/convert_hf_to_gguf.py" "$@"

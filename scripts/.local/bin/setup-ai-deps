@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+### shellcheck shell=bash
+### setup-ai-deps: Check/install host packages for native llama.cpp + Ollama builds.
+###
+### Fedora packages installed with --install:
+###   clang, lld, cmake, ninja-build, git, openssl-devel, ccache,
+###   rocm-hip-devel, hipblas-devel, rocblas-devel, golang,
+###   python3-pip, uv
+set -euo pipefail
+
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+if [ ! -t 1 ]; then
+    GREEN='' YELLOW='' RED='' NC=''
+fi
+
+info() { printf "%b[*]%b %s\n" "$GREEN" "$NC" "$*"; }
+warn() { printf "%b[!]%b %s\n" "$YELLOW" "$NC" "$*" >&2; }
+die() { printf "%b[!]%b %s\n" "$RED" "$NC" "$*" >&2; exit 1; }
+
+usage() {
+    cat <<'EOF'
+Usage: setup-ai-deps [--check | --install]
+
+  --check    Verify that all build dependencies are present (default).
+  --install  Install missing Fedora packages with dnf, then re-check.
+
+Environment:
+  AI_DEPS_NO_GPU=1   Skip the ROCm/HIP dependency checks.
+EOF
+}
+
+INSTALL=0
+for arg in "$@"; do
+    case "$arg" in
+    --install) INSTALL=1 ;;
+    --check) INSTALL=0 ;;
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    *)
+        die "Unknown argument: $arg (try --help)"
+        ;;
+    esac
+done
+
+FEDORA_PACKAGES=(
+    git
+    cmake
+    ninja-build
+    clang
+    clang-tools-extra
+    lld
+    openssl-devel
+    ccache
+    rocm-hip-devel
+    hipblas-devel
+    rocblas-devel
+    golang
+    python3-pip
+    uv
+)
+
+COMMANDS=(git cmake ninja clang clang++ python3)
+OPTIONAL_COMMANDS=(uv go rocminfo hipcc)
+
+if [ -r /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+else
+    ID="unknown"
+fi
+
+missing_packages=()
+if [ "${ID:-}" = "fedora" ]; then
+    for pkg in "${FEDORA_PACKAGES[@]}"; do
+        if ! rpm -q "$pkg" >/dev/null 2>&1; then
+            missing_packages+=("$pkg")
+        fi
+    done
+fi
+
+if [ "${#missing_packages[@]}" -gt 0 ]; then
+    warn "Missing Fedora packages: ${missing_packages[*]}"
+    if [ "$INSTALL" -eq 1 ]; then
+        info "Installing with dnf..."
+        sudo dnf install -y "${missing_packages[@]}"
+    else
+        printf '\nInstall them with:\n  sudo dnf install -y %s\n\n' \
+            "${missing_packages[*]}"
+        printf 'Or run: setup-ai-deps --install\n'
+        exit 1
+    fi
+fi
+
+missing_commands=()
+for cmd in "${COMMANDS[@]}"; do
+    command -v "$cmd" >/dev/null 2>&1 || missing_commands+=("$cmd")
+done
+if [ "${#missing_commands[@]}" -gt 0 ]; then
+    die "Missing required commands: ${missing_commands[*]}"
+fi
+
+for cmd in "${OPTIONAL_COMMANDS[@]}"; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        warn "Optional command not found: $cmd"
+    fi
+done
+
+info "Compiler: $(clang --version | head -n 1)"
+info "CMake:    $(cmake --version | head -n 1)"
+info "Ninja:    $(ninja --version)"
+
+if command -v go >/dev/null 2>&1; then
+    info "Go:       $(go version)"
+else
+    warn "Go is required to build Ollama; install the golang package."
+fi
+
+if [ "${AI_DEPS_NO_GPU:-0}" = "1" ]; then
+    info "Skipping GPU checks (AI_DEPS_NO_GPU=1)."
+    exit 0
+fi
+
+if ! command -v rocminfo >/dev/null 2>&1; then
+    warn "rocminfo not found; HIP builds will be unavailable."
+    exit 0
+fi
+
+gpu_target=$(rocminfo 2>/dev/null | grep -o 'gfx[0-9][0-9a-z]*' | head -n 1 || true)
+if [ -n "$gpu_target" ]; then
+    info "ROCm GPU target: $gpu_target"
+else
+    warn "rocminfo did not report a gfx target; HIP builds will be unavailable."
+fi
+
+hip_clang=""
+for candidate in \
+    "${ROCM_PATH:-/usr}/lib64/rocm/llvm/bin/clang++" \
+    "${ROCM_PATH:-/usr}/llvm/bin/clang++" \
+    "/opt/rocm/llvm/bin/clang++"; do
+    if [ -x "$candidate" ]; then
+        hip_clang="$candidate"
+        break
+    fi
+done
+if [ -n "$hip_clang" ]; then
+    info "ROCm Clang: $hip_clang"
+else
+    warn "ROCm Clang not found; HIP builds will be unavailable."
+fi
+
+if ldconfig -p 2>/dev/null | grep 'libhipblas\.so' >/dev/null; then
+    info "HIPBLAS runtime found."
+else
+    warn "libhipblas not found in the loader cache; HIP builds may fail."
+fi
+
+info "AI build dependencies are ready."

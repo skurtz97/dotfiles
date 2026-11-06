@@ -1,28 +1,210 @@
 #!/usr/bin/env bash
 ### shellcheck shell=bash
-### build-ollama: Go wrapper build with injected HIP paths
+### build-ollama: Native Ollama build with Clang and an optional ROCm backend.
+###
+### Environment:
+###   OLLAMA_SRC              source checkout      (default: ~/src/ollama)
+###   OLLAMA_BUILD_DIR        CMake build dir      (default: $OLLAMA_SRC/build)
+###   OLLAMA_PREFIX           install prefix       (default: ~/.local)
+###   OLLAMA_BACKEND          auto|rocm_v7_2|cpu   (default: auto)
+###   OLLAMA_GPU_TARGETS      ROCm target          (default: detected with rocminfo)
+###   OLLAMA_JOBS             parallel jobs        (default: nproc)
+###   OLLAMA_UPDATE           0 to skip git update (default: 1)
+###   OLLAMA_CLEAN            1 to wipe build dir  (default: 0)
+###   OLLAMA_VERSION          version string       (default: git describe)
 set -euo pipefail
 
 GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
 NC='\033[0m'
-SRC_DIR="$HOME/src/ollama"
+if [ ! -t 1 ]; then
+    GREEN='' YELLOW='' RED='' NC=''
+fi
 
-echo -e "${GREEN}=== Building Ollama Wrapper ===${NC}"
+info() { printf "%b[*]%b %s\n" "$GREEN" "$NC" "$*"; }
+warn() { printf "%b[!]%b %s\n" "$YELLOW" "$NC" "$*" >&2; }
+die() { printf "%b[!]%b %s\n" "$RED" "$NC" "$*" >&2; exit 1; }
 
-if [ ! -d "$SRC_DIR" ]; then
+SRC_DIR="${OLLAMA_SRC:-$HOME/src/ollama}"
+BUILD_DIR="${OLLAMA_BUILD_DIR:-$SRC_DIR/build}"
+PREFIX="${OLLAMA_PREFIX:-$HOME/.local}"
+BACKEND="${OLLAMA_BACKEND:-auto}"
+JOBS="${OLLAMA_JOBS:-$(nproc 2>/dev/null || printf '1')}"
+UPDATE="${OLLAMA_UPDATE:-1}"
+CLEAN="${OLLAMA_CLEAN:-0}"
+CC_BIN="${OLLAMA_CC:-clang}"
+CXX_BIN="${OLLAMA_CXX:-clang++}"
+ROCM_PREFIX="${ROCM_PATH:-/usr}"
+
+find_hip_clang() {
+    local candidate
+    for candidate in \
+        "$ROCM_PREFIX/lib64/rocm/llvm/bin/clang++" \
+        "$ROCM_PREFIX/llvm/bin/clang++" \
+        "/opt/rocm/llvm/bin/clang++"; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 0
+}
+
+detect_gpu_target() {
+    command -v rocminfo >/dev/null 2>&1 || return 0
+    rocminfo 2>/dev/null | grep -o 'gfx[0-9][0-9a-z]*' | head -n 1 || true
+}
+
+find_hip_device_lib_path() {
+    local bitcode_dir
+    for bitcode_dir in "$ROCM_PREFIX"/lib64/rocm/llvm/lib/clang/*/lib/amdgcn/bitcode \
+        "$ROCM_PREFIX"/llvm/lib/clang/*/lib/amdgcn/bitcode; do
+        if [ -f "$bitcode_dir/oclc_abi_version_400.bc" ]; then
+            printf '%s\n' "$bitcode_dir"
+            return 0
+        fi
+    done
+    return 0
+}
+
+for cmd in git cmake go "$CC_BIN" "$CXX_BIN"; do
+    command -v "$cmd" >/dev/null 2>&1 || die "Missing required command: $cmd"
+done
+CC_PATH=$(command -v "$CC_BIN")
+CXX_PATH=$(command -v "$CXX_BIN")
+hip_clang=$(find_hip_clang)
+hip_device_lib=$(find_hip_device_lib_path)
+gpu_target="${OLLAMA_GPU_TARGETS:-$(detect_gpu_target)}"
+
+case "$BACKEND" in
+auto)
+    if [ -n "$hip_clang" ] && [ -n "$gpu_target" ]; then
+        BACKEND=rocm_v7_2
+    else
+        BACKEND=cpu
+    fi
+    ;;
+rocm | rocm_v7_2)
+    BACKEND=rocm_v7_2
+    [ -n "$hip_clang" ] || die "ROCm build requested, but ROCm Clang was not found (try setup-ai-deps)."
+    [ -n "$gpu_target" ] || die "ROCm build requested, but no GPU target was detected. Set OLLAMA_GPU_TARGETS=gfx1201."
+    ;;
+cpu | none | "")
+    BACKEND=cpu
+    ;;
+*)
+    die "Unknown OLLAMA_BACKEND='$BACKEND' (expected auto, rocm_v7_2, or cpu)."
+    ;;
+esac
+
+export CC="$CC_PATH"
+export CXX="$CXX_PATH"
+export CGO_ENABLED=1
+if [ "$BACKEND" = "rocm_v7_2" ]; then
+    info "Backend: ROCm (rocm_v7_2, $gpu_target) + native CPU"
+    export ROCM_PATH="$ROCM_PREFIX"
+    export HIP_PATH="${HIP_PATH:-$ROCM_PREFIX}"
+    export HIPCXX="$hip_clang"
+    if [ -n "$hip_device_lib" ]; then
+        export HIP_DEVICE_LIB_PATH="$hip_device_lib"
+    fi
+else
+    info "Backend: native CPU"
+fi
+
+# Update or clone the source tree without throwing away local work.
+if [ -d "$SRC_DIR/.git" ]; then
+    if [ "$UPDATE" = "1" ]; then
+        if [ -n "$(git -C "$SRC_DIR" status --porcelain)" ]; then
+            warn "Source tree is dirty; skipping update: $SRC_DIR"
+        else
+            info "Updating Ollama..."
+            git -C "$SRC_DIR" pull --ff-only
+        fi
+    fi
+else
+    info "Cloning Ollama into $SRC_DIR..."
+    mkdir -p "$(dirname "$SRC_DIR")"
     git clone https://github.com/ollama/ollama.git "$SRC_DIR"
 fi
-cd "$SRC_DIR" || exit 1
-git pull
 
-# Purge cache
-rm -rf build dist
+if [ "$CLEAN" = "1" ] && [ -d "$BUILD_DIR" ]; then
+    info "Removing build directory: $BUILD_DIR"
+    rm -rf "$BUILD_DIR"
+fi
 
-# Force the ROCm/HIP backend tag
-export OLLAMA_BACKENDS="rocm"
+# Ollama's superbuild configures nested llama.cpp projects. CMake cannot reuse
+# a cache created by a different compiler, so start fresh if Clang changed.
+cache="$BUILD_DIR/CMakeCache.txt"
+if [ -f "$cache" ]; then
+    cached_cxx=$(sed -n 's/^CMAKE_CXX_COMPILER:[^=]*=//p' "$cache" | head -n 1)
+    case "$cached_cxx" in
+    */*) ;;
+    "") ;;
+    *) cached_cxx=$(command -v "$cached_cxx" 2>/dev/null || printf '%s' "$cached_cxx") ;;
+    esac
+    if [ -n "$cached_cxx" ] && [ "$cached_cxx" != "$CXX_PATH" ]; then
+        warn "C++ compiler changed ($cached_cxx -> $CXX_PATH); removing stale build directory."
+        rm -rf "$BUILD_DIR"
+    fi
+fi
 
-# Generate the wrapper code and execute the Go build
-go generate -tags rocm ./...
-go build -tags rocm .
+ollama_version="${OLLAMA_VERSION:-$(git -C "$SRC_DIR" describe --tags --always --dirty 2>/dev/null || printf '0.0.0')}"
 
-echo -e "${GREEN}[*] Ollama binary build complete.${NC}"
+cmake_args=(
+    -S "$SRC_DIR"
+    -B "$BUILD_DIR"
+    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_C_COMPILER="$CC_PATH"
+    -DCMAKE_CXX_COMPILER="$CXX_PATH"
+    -DCMAKE_INSTALL_PREFIX="$PREFIX"
+    -DOLLAMA_GO_OUTPUT="$BUILD_DIR/ollama"
+    -DOLLAMA_BUILD_PARALLEL="$JOBS"
+    -DOLLAMA_VERSION="$ollama_version"
+)
+if command -v ninja >/dev/null 2>&1; then
+    cmake_args+=(-G Ninja)
+fi
+if [ "$BACKEND" = "rocm_v7_2" ]; then
+    cmake_args+=(
+        -DOLLAMA_LLAMA_BACKENDS=rocm_v7_2
+        -DAMDGPU_TARGETS="$gpu_target"
+        -DCMAKE_HIP_ARCHITECTURES="$gpu_target"
+    )
+else
+    cmake_args+=(-DOLLAMA_LLAMA_BACKENDS=)
+fi
+
+info "Configuring (Clang: $CC_PATH / $CXX_PATH)..."
+cmake "${cmake_args[@]}"
+
+info "Building with $JOBS jobs..."
+if ! cmake --build "$BUILD_DIR" --parallel "$JOBS"; then
+    # ROCm Clang has been observed to segfault transiently on a single HIP
+    # translation unit. A second pass is usually enough to finish.
+    warn "Build failed; retrying once (ROCm Clang can crash transiently)."
+    cmake --build "$BUILD_DIR" --parallel "$JOBS"
+fi
+
+# Older builds left ~/.local/bin/ollama as a symlink into the source tree.
+# Remove it so the installed binary is a real file.
+if [ -L "$PREFIX/bin/ollama" ]; then
+    info "Replacing legacy Ollama symlink at $PREFIX/bin/ollama"
+    rm -f "$PREFIX/bin/ollama"
+fi
+
+info "Installing to $PREFIX..."
+cmake --install "$BUILD_DIR" --prefix "$PREFIX"
+
+[ -x "$PREFIX/bin/ollama" ] || die "Expected executable not installed: $PREFIX/bin/ollama"
+[ -x "$PREFIX/lib/ollama/llama-server" ] || die "Ollama payload missing: $PREFIX/lib/ollama/llama-server"
+if [ "$BACKEND" = "rocm_v7_2" ]; then
+    [ -d "$PREFIX/lib/ollama/rocm_v7_2" ] || die "ROCm payload missing: $PREFIX/lib/ollama/rocm_v7_2"
+fi
+
+info "Build complete."
+"$PREFIX/bin/ollama" --version 2>&1 | head -n 2 || true
+printf '  ollama:      %s\n' "$PREFIX/bin/ollama"
+printf '  payload:     %s\n' "$PREFIX/lib/ollama"
+printf '  restart:     systemctl --user restart ollama\n'

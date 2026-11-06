@@ -32,7 +32,7 @@ BIN_DIR  := $(HOME)/.local/bin
 SCRIPTS  := $(wildcard scripts/bin/*)
 
 .PHONY: all stow restow adopt delete link-scripts unlink-scripts clean-links \
-	system system-diff help
+	system system-diff ai ai-deps llama llama-cpp ollama help
 
 # Default action when just running `make`
 all: restow
@@ -103,6 +103,28 @@ system-diff:
 	done
 
 # -----------------------------------------------------------------------------
+# Local AI Builds
+# -----------------------------------------------------------------------------
+# Native llama.cpp (Clang, HIP when ROCm is available) plus Ollama.
+# Source checkouts and build dirs live outside the repo under ~/src.
+AI_BIN := $(CURDIR)/scripts/.local/bin
+
+# Install Fedora build dependencies (clang, cmake, ROCm headers, Go, ...)
+ai-deps:
+	@$(AI_BIN)/setup-ai-deps --install
+
+# Build/install llama.cpp, llama-server, format tools, and the GGUF Python env
+llama llama-cpp:
+	@$(AI_BIN)/build-llama-cpp
+
+# Build/install Ollama with the ROCm backend when available
+ollama:
+	@$(AI_BIN)/build-ollama
+
+# Full local AI toolchain
+ai: ai-deps llama ollama
+
+# -----------------------------------------------------------------------------
 # Maintenance Targets
 # -----------------------------------------------------------------------------
 
@@ -124,3 +146,7 @@ help:
 	@echo "  make clean-links    - Delete dead symlinks in $(TARGET)"
 	@echo "  make system         - Install system/ files to / (sudo)"
 	@echo "  make system-diff    - Diff system/ against installed files"
+	@echo "  make ai-deps        - Install Fedora AI build dependencies (sudo dnf)"
+	@echo "  make llama          - Build native llama.cpp/llama-server with Clang"
+	@echo "  make ollama         - Build native Ollama with the ROCm backend"
+	@echo "  make ai             - Run ai-deps, llama, and ollama"

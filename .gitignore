@@ -8,4 +8,7 @@ goose/.config/goose/secrets.yaml
 goose/.config/goose/permission.yaml
 goose/.config/goose/permissions/
 
-echo ".api_keys" >> ~/src/dotfiles/.gitignore
+
+# Python bytecode
+__pycache__/
+*.pyc
