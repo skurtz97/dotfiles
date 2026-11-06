@@ -6,8 +6,10 @@
   "defaultProvider": "ollama",
   "defaultModel": "qwen3.6-35b-uncensored:latest",
   "enabledModels": [
-    "qwen3.6-35b-uncensored:latest",
-    "qwen3.8-27b-hauhau-aggressive:latest",
-    "qwen3.6-27b-fable-iq3:latest"
+    "deepinfra/zai-org/GLM-5.3-Flash",
+    "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "ollama/qwen3.6-35b-uncensored:latest",
+    "ollama/qwen3.8-27b-hauhau-aggressive:latest",
+    "ollama/qwen3.6-27b-fable-iq3:latest"
   ]
 }
