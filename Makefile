@@ -20,8 +20,7 @@ PACKAGES := \
 	goose \
 	pi \
 	scripts\
-	ghostty\
-	x3270
+	ghostty
 
 # Stow base arguments (-v: verbose, --target: destination)
 STOW_CMD := stow -v --no-folding --target="$(TARGET)"
