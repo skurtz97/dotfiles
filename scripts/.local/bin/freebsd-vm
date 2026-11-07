@@ -226,15 +226,18 @@ ensure_network() {
     run virsh -q -c "${CONNECT}" net-start default
 }
 
-# Use the matching osinfo id if this libosinfo knows it, else fall back.
+# Use the exact osinfo id if known, else the newest FreeBSD id this
+# libosinfo has, else let virt-install guess.
 pick_osinfo() {
-    local os="freebsd${RELEASE%-RELEASE}" list
+    local os="freebsd${RELEASE%-RELEASE}" list best
     list="$(virt-install --osinfo list 2>/dev/null || true)"
     if grep -Eq "(^|[ ,])${os//./\\.}(,|$)" <<<"${list}"; then
         printf '%s\n' "${os}"
-    else
-        printf '%s\n' "detect=on,require=off"
+        return 0
     fi
+    best="$(grep -oE '(^|[ ,])freebsd[0-9]+\.[0-9]+' <<<"${list}" \
+        | tr -d ' ,' | sort -uV | tail -n 1 || true)"
+    printf '%s\n' "${best:-detect=on,require=off}"
 }
 
 create_domain() {
