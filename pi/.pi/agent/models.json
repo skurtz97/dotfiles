@@ -10,6 +10,62 @@
     "opencode": {
       "apiKey": "${OPENCODE_API_KEY}"
     },
+    "siliconflow": {
+      "name": "SiliconFlow",
+      "baseUrl": "https://api.siliconflow.com/v1",
+      "api": "openai-completions",
+      "apiKey": "${SILICONFLOW_API_KEY}",
+      "models": [
+        {
+          "id": "moonshotai/Kimi-K2.7-Code",
+          "name": "Kimi K2.7 Code",
+          "contextWindow": 262144,
+          "maxTokens": 32768,
+          "reasoning": true,
+          "input": ["text"]
+        },
+        {
+          "id": "zai-org/GLM-5.3",
+          "name": "GLM 5.3",
+          "contextWindow": 204800,
+          "maxTokens": 131072,
+          "reasoning": true,
+          "input": ["text"]
+        },
+        {
+          "id": "deepseek-ai/DeepSeek-V4-Pro",
+          "name": "DeepSeek V4 Pro",
+          "contextWindow": 262144,
+          "maxTokens": 32768,
+          "reasoning": true,
+          "input": ["text"]
+        },
+        {
+          "id": "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+          "name": "Qwen3 Coder 30B A3B",
+          "contextWindow": 262144,
+          "maxTokens": 32768,
+          "reasoning": false,
+          "input": ["text"]
+        },
+        {
+          "id": "Qwen/Qwen3-VL-32B-Instruct",
+          "name": "Qwen3 VL 32B Instruct",
+          "contextWindow": 131072,
+          "maxTokens": 16384,
+          "reasoning": false,
+          "input": ["text", "image"]
+        },
+        {
+          "id": "openai/gpt-oss-120b",
+          "name": "GPT-OSS 120B",
+          "contextWindow": 131072,
+          "maxTokens": 32768,
+          "reasoning": true,
+          "input": ["text"]
+        }
+      ]
+    },
     "deepinfra": {
       "name": "DeepInfra",
       "baseUrl": "https://api.deepinfra.com/v1/openai",
@@ -74,6 +130,26 @@
       "api": "openai-completions",
       "apiKey": "ollama",
       "models": [
+        {
+          "id": "qwen3-coder-30b-a3b:UD-Q3_K_XL",
+          "name": "Qwen3 Coder 30B A3B (UD-Q3_K_XL)",
+          "api": "openai-completions",
+          "baseUrl": "http://127.0.0.1:11434/v1",
+          "contextWindow": 32768,
+          "maxTokens": 16384,
+          "input": [
+            "text"
+          ],
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "governance": "untested",
+          "speed_tps": 71.7,
+          "notes": "Official Qwen3-Coder-30B-A3B (MoE, 3B active) via unsloth UD-Q3_K_XL, 13.81GB. 100% GPU-resident (15.46GB VRAM, 32k ctx). Tool-calling verified. Fastest local model by far."
+        },
         {
           "id": "qwen3.8-27b-neo-coder-max:latest",
           "name": "Qwen3.8 27B NEO-CODER MAX (Q4_K_M)",

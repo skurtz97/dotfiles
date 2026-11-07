@@ -1,0 +1,279 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+#
+# freebsd-vm - Create a FreeBSD KVM guest from the official prebuilt
+# qcow2 VM image, registered with libvirt (qemu:///system).
+#
+# Managed via GNU Stow in ~/src/dotfiles/scripts/.local/bin/
+
+set -euo pipefail
+
+readonly BASE_URL="https://download.freebsd.org/releases/VM-IMAGES"
+readonly IMAGES_DIR="/var/lib/libvirt/images"
+readonly CONNECT="qemu:///system"
+
+RELEASE=""
+NAME="freebsd"
+MEMORY=8192
+CPUS=4
+GROW=40
+FS="zfs"
+DRY_RUN=0
+VERBOSE=0
+
+WORKDIR=""
+IMAGE_XZ=""
+DISK=""
+DISK_CREATED=0
+
+
+usage() {
+    cat <<EOF
+Usage: ${0##*/} [OPTIONS]
+
+Download the official FreeBSD amd64 VM image, install it as
+${IMAGES_DIR}/<name>.qcow2, and define a UEFI KVM guest.
+
+Options:
+  -r, --release VER   FreeBSD release, e.g. 15.1-RELEASE (default: latest)
+  -N, --name NAME     Domain and disk name (default: ${NAME})
+  -m, --memory MIB    Guest RAM in MiB (default: ${MEMORY})
+  -c, --cpus N        Guest vCPUs (default: ${CPUS})
+  -s, --size GIB      GiB added to the image's disk (default: ${GROW})
+  -f, --fs TYPE       Root filesystem image: zfs or ufs (default: ${FS})
+  -n, --dry-run       Show what would be done without doing it
+  -v, --verbose       Verbose output (download progress, details)
+  -h, --help          Show this help and exit
+EOF
+}
+
+
+log()  { printf '%s\n' "$*"; }
+vlog() { if (( VERBOSE )); then printf '%s\n' "$*"; fi; }
+warn() { printf 'warning: %s\n' "$*" >&2; }
+die()  { printf 'error: %s\n' "$*" >&2; exit 1; }
+
+# Run a command, or print it (shell-quoted) in dry-run mode.
+run() {
+    if (( DRY_RUN )); then
+        printf '[dry-run]'
+        printf ' %q' "$@"
+        printf '\n'
+    else
+        vlog "+ $*"
+        "$@"
+    fi
+}
+
+cleanup() {
+    local rc=$?
+    if [[ -n "${WORKDIR}" ]]; then
+        rm -rf "${WORKDIR}"
+    fi
+    if (( rc != 0 && DISK_CREATED )); then
+        warn "removing partial disk ${DISK}"
+        sudo rm -f "${DISK}"
+    fi
+}
+
+need_val() {
+    [[ $# -ge 2 && -n "$2" ]] || die "option $1 requires a value"
+}
+
+parse_args() {
+    while (( $# > 0 )); do
+        case "$1" in
+            -r|--release) need_val "$@"; RELEASE="$2"; shift ;;
+            -N|--name)    need_val "$@"; NAME="$2"; shift ;;
+            -m|--memory)  need_val "$@"; MEMORY="$2"; shift ;;
+            -c|--cpus)    need_val "$@"; CPUS="$2"; shift ;;
+            -s|--size)    need_val "$@"; GROW="$2"; shift ;;
+            -f|--fs)      need_val "$@"; FS="$2"; shift ;;
+            -n|--dry-run) DRY_RUN=1 ;;
+            -v|--verbose) VERBOSE=1 ;;
+            -h|--help)    usage; exit 0 ;;
+            *)            usage >&2; die "unknown option: $1" ;;
+        esac
+        shift
+    done
+
+    [[ "${MEMORY}" =~ ^[0-9]+$ ]] || die "invalid --memory: ${MEMORY}"
+    [[ "${CPUS}" =~ ^[0-9]+$ ]]   || die "invalid --cpus: ${CPUS}"
+    [[ "${GROW}" =~ ^[0-9]+$ ]]   || die "invalid --size: ${GROW}"
+    [[ "${NAME}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]] \
+        || die "invalid --name: ${NAME}"
+    case "${FS}" in
+        zfs|ufs) ;;
+        *) die "invalid --fs: ${FS} (zfs or ufs)" ;;
+    esac
+    if [[ -n "${RELEASE}" && ! "${RELEASE}" =~ ^[0-9]+\.[0-9]+-RELEASE$ ]]
+    then
+        die "invalid --release: ${RELEASE} (e.g. 15.1-RELEASE)"
+    fi
+
+    DISK="${IMAGES_DIR}/${NAME}.qcow2"
+}
+
+check_prereqs() {
+    local cmd
+    for cmd in curl xz sha256sum qemu-img virt-install virsh; do
+        command -v "${cmd}" >/dev/null 2>&1 \
+            || die "${cmd} not found in PATH"
+    done
+
+    virsh -c "${CONNECT}" uri >/dev/null 2>&1 \
+        || die "cannot connect to ${CONNECT} (in the libvirt group?)"
+    if virsh -c "${CONNECT}" dominfo "${NAME}" >/dev/null 2>&1; then
+        die "domain '${NAME}' already exists"
+    fi
+
+    if (( ! DRY_RUN )); then
+        sudo -v || die "sudo is required to write ${IMAGES_DIR}"
+        if sudo test -e "${DISK}"; then
+            die "disk already exists: ${DISK}"
+        fi
+    fi
+}
+
+# Pick the highest X.Y-RELEASE listed in the VM-IMAGES index.
+resolve_release() {
+    if [[ -n "${RELEASE}" ]]; then
+        return 0
+    fi
+    vlog "resolving latest release from ${BASE_URL}/"
+    RELEASE="$(curl -fsSL "${BASE_URL}/" \
+        | grep -oE '[0-9]+\.[0-9]+-RELEASE' \
+        | sort -uV | tail -n 1 || true)"
+    [[ -n "${RELEASE}" ]] || die "could not determine latest release"
+    log "using FreeBSD ${RELEASE}"
+}
+
+verify_checksum() {
+    local url="$1" xz_name="$2"
+    local sums="${WORKDIR}/CHECKSUM.SHA256" line
+
+    if ! curl -fsSL -o "${sums}" "${url}/CHECKSUM.SHA256"; then
+        warn "no CHECKSUM.SHA256 at ${url}; skipping verification"
+        return 0
+    fi
+    line="$(grep -F "(${xz_name})" "${sums}" || true)"
+    if [[ -z "${line}" ]]; then
+        warn "${xz_name} not in CHECKSUM.SHA256; skipping verification"
+        return 0
+    fi
+    (cd "${WORKDIR}" && sha256sum -c --status <<<"${line}") \
+        || die "checksum mismatch for ${xz_name}"
+    vlog "checksum OK"
+}
+
+fetch_image() {
+    local xz_name="FreeBSD-${RELEASE}-amd64-${FS}.qcow2.xz"
+    local url="${BASE_URL}/${RELEASE}/amd64/Latest"
+
+    if (( DRY_RUN )); then
+        log "[dry-run] would download ${url}/${xz_name}"
+        IMAGE_XZ="${xz_name}"
+        return 0
+    fi
+
+    # /var/tmp is disk-backed; /tmp is tmpfs on Fedora.
+    WORKDIR="$(mktemp -d -p /var/tmp freebsd-vm.XXXXXX)"
+    IMAGE_XZ="${WORKDIR}/${xz_name}"
+
+    local curl_flags=(-fL -o "${IMAGE_XZ}")
+    if (( VERBOSE )); then
+        curl_flags+=(--progress-bar)
+    else
+        curl_flags+=(-sS)
+    fi
+    log "downloading ${xz_name}"
+    curl "${curl_flags[@]}" "${url}/${xz_name}"
+
+    verify_checksum "${url}" "${xz_name}"
+}
+
+install_disk() {
+    log "installing ${DISK}"
+    run sudo touch "${DISK}"
+    if (( ! DRY_RUN )); then
+        DISK_CREATED=1
+    fi
+
+    # Disable btrfs CoW while the file is still empty; qcow2 on CoW
+    # fragments badly. +C has no effect once data has been written.
+    if [[ "$(stat -f -c %T "${IMAGES_DIR}")" == btrfs ]]; then
+        run sudo chattr +C "${DISK}"
+    fi
+
+    if (( DRY_RUN )); then
+        log "[dry-run] would decompress ${IMAGE_XZ} -> ${DISK}"
+    else
+        xz -dc "${IMAGE_XZ}" | sudo tee "${DISK}" >/dev/null
+    fi
+
+    # Root fs grows into the added space on first boot (growfs).
+    if (( GROW > 0 )); then
+        run sudo qemu-img resize -q -f qcow2 "${DISK}" "+${GROW}G"
+    fi
+}
+
+ensure_network() {
+    local info
+    info="$(virsh -c "${CONNECT}" net-info default 2>/dev/null || true)"
+    if grep -Eq '^Active:[[:space:]]+yes' <<<"${info}"; then
+        return 0
+    fi
+    run virsh -q -c "${CONNECT}" net-start default
+}
+
+# Use the matching osinfo id if this libosinfo knows it, else fall back.
+pick_osinfo() {
+    local os="freebsd${RELEASE%-RELEASE}" list
+    list="$(virt-install --osinfo list 2>/dev/null || true)"
+    if grep -Eq "(^|[ ,])${os//./\\.}(,|$)" <<<"${list}"; then
+        printf '%s\n' "${os}"
+    else
+        printf '%s\n' "detect=on,require=off"
+    fi
+}
+
+create_domain() {
+    local osinfo
+    osinfo="$(pick_osinfo)"
+    vlog "osinfo: ${osinfo}"
+
+    local args=(
+        --connect "${CONNECT}"
+        --name "${NAME}"
+        --memory "${MEMORY}"
+        --vcpus "${CPUS}"
+        --osinfo "${osinfo}"
+        --disk "path=${DISK},format=qcow2,bus=virtio"
+        --network "network=default,model=virtio"
+        --boot uefi
+        --import
+        --noautoconsole
+    )
+    if (( ! VERBOSE )); then
+        args+=(--quiet)
+    fi
+    run virt-install "${args[@]}"
+}
+
+main() {
+    parse_args "$@"
+    trap cleanup EXIT
+    check_prereqs
+    resolve_release
+    fetch_image
+    install_disk
+    ensure_network
+    create_domain
+
+    if (( ! DRY_RUN )); then
+        log "created '${NAME}' (FreeBSD ${RELEASE}); login: root, no password"
+        log "console: virt-manager -c ${CONNECT} --show-domain-console ${NAME}"
+    fi
+}
+
+main "$@"

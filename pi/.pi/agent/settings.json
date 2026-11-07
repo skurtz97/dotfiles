@@ -4,12 +4,20 @@
   "defaultProjectTrust": "ask",
   "lastChangelogVersion": "1.5.0",
   "defaultProvider": "ollama",
-  "defaultModel": "qwen3.6-35b-uncensored:latest",
+  "defaultModel": "qwen3-coder-30b-a3b:UD-Q3_K_XL",
   "enabledModels": [
-    "deepinfra/zai-org/GLM-5.3-Flash",
-    "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "ollama/qwen3-coder-30b-a3b:UD-Q3_K_XL",
     "ollama/qwen3.6-35b-uncensored:latest",
     "ollama/qwen3.8-27b-hauhau-aggressive:latest",
-    "ollama/qwen3.6-27b-fable-iq3:latest"
+    "ollama/qwen3.6-27b-fable-iq3:latest",
+    "ollama/qwen3.8-27b-neo-coder-max:latest",
+    "ollama/qwen3.8-27b-cold-fusion:latest",
+    "deepinfra/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+    "deepinfra/zai-org/GLM-5.3-Flash",
+    "deepinfra/Qwen/Qwen3-Coder-480B-A35B-Instruct",
+    "siliconflow/moonshotai/Kimi-K2.7-Code",
+    "siliconflow/zai-org/GLM-5.3",
+    "siliconflow/deepseek-ai/DeepSeek-V4-Pro",
+    "siliconflow/openai/gpt-oss-120b"
   ]
 }
