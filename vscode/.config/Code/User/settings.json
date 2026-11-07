@@ -324,4 +324,5 @@
 
   "hlasm.enableTypeChecking": true,
   "hlasm.showControlBlockHints": true,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
 }
